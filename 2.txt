@@ -1,0 +1,865 @@
+# Harness v2 리팩터링 상태 보고
+
+작성 시각: `2026-07-24 01:55:31 KST`
+UTC: `2026-07-23T16:55:31Z`
+Branch / HEAD: `feature/this-change` / `df1f454ded37…`
+HEAD tree: `54e2ce7a7e7f…`
+Worktree: `mixed` (index `dirty`, worktree `dirty`)
+Main model/effort: `gpt-5.6-sol / xhigh`
+현재 owner directive: `OWNER_CLARIFICATION_V11_10_FINAL`
+현재 workflow candidate: `harness-v2-a0-closure-v4`
+현재 generation: `20`
+최신 authoritative event: `2026-07-23T16:55:05Z`
+
+- A0: `4/8`
+- A0 independent acceptance: `0/1`
+- Thin E2E foundation: `PREINTEGRATION_MERGED`
+- Thin E2E authored: `3/3`
+- Thin E2E executed: `3/3`
+- Thin E2E outcomes: `PASS=2, EXPECTED_RED=1, UNEXPECTED_FAILURE=0, ENVIRONMENT_BLOCKED=0`
+- A1 formal acceptance: `0/10`
+- Preintegration HEAD: `554b07e48c95…`
+- Preintegration ready/merged/stale: `0/6/0`
+- Exact subject / freeze / receipt: `3e746cdc945e… / 29d628453de6… / 8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930`
+- Guardian / verifier / cross-family: `NOT_RUN / NOT_RUN / NOT_RUN`
+- Broad: `NOT_RUN`
+- Commit A: `none`
+- Acceptance credit: `ZERO`
+- Main output delivery: previous `PLATFORM_BLOCKED` / current report `DELIVERED_BY_CURRENT_ATOMIC_PUBLICATION`
+- report delivery: `DELIVERED/FRESH`
+
+## 한눈에 보는 현재 상황
+
+- owner: `OWNER_CLARIFICATION_V11_10_FINAL` / `ADMITTED_CURRENT_ZERO_CREDIT` / credit `ZERO`
+- owner source: `harness_v2_owner_clarification_v11_10_FINAL_recovery_circuit_control_plane_split.txt` / `746ef00649c802734f3964cd343e7f0fa0631abbca4a920d3fc2dcc3f916ac16`
+- owner admission: `.harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-10-final-recovery-circuit-control-plane-split.json` / `ac3e50fafdca207ff128f264389ca062f12c39207cf4c0ac2a306bbf7303dbab`
+- recovery circuit: lane `G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY`; incident `g21-ar1-authority-schema-self-lock-875dd627`; state `ESCALATED_OWNER_REQUIRED`
+- runnable: global root `true`; serial lane `false`
+- recovery counters: repair attempts remaining `0`; half-open canaries executed `0`
+- latest macro event: `closure-v4-v11-10-p21-final-human-current-semantics-ledger-aligned` / `P21_FINAL_HUMAN_CURRENT_SEMANTICS_ACCEPTED_INTEGRATED_LEDGER_ALIGNED_ALL_NON_DUPLICATE_LANES_STOPPED_ZERO_CREDIT` / `2026-07-23T16:50:40Z` / credit `ZERO`
+- next gate: `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+### Current/predecessor authority separation
+
+- predecessor G19: `SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT` / transition `5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708`
+- current G20: `FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED` / transition `277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19` / receipt `8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930`
+- successor G21: `AUTOMATIC_CREATION_PROHIBITED`; current review refs `0`; acceptance credit `ZERO`
+
+## CANDIDATE ROLES
+
+| role | active | identity | state | credit |
+| --- | --- | --- | --- | --- |
+| current G20 candidate | true | 3e746cdc945e… | IMMUTABLE | ZERO |
+| prospective G21 candidate | false | b1228417a411… | DESCRIPTOR_SEALED_INACTIVE | ZERO |
+| current after G21 | false | absent | NOT_YET_OBSERVABLE | ZERO |
+| capability audit selected fix | false | absent | NONE_SELECTED_NONOVERLAP_ONLY | ZERO |
+
+## PARALLEL_MECHANICALLY_READ_ONLY
+
+| lane | status | credit |
+| --- | --- | --- |
+| CAPABILITY_AUDIT | PHASE_A_STATE_PATH_BOUNDARY_CHARACTERIZED_PARTIAL_SPARK_DISABLED | ZERO |
+| WORKTREE_RUN_REFERENCE_INVENTORY | READ_ONLY_CURRENT_ONE_TERMINAL_WORKTREE_CLEANUP_RECEIPT_PASS | ZERO |
+| TRACK_P_STALENESS | PARKED_REPLAY_AFTER_COMMIT_A | ZERO |
+
+## PARK
+
+- renderer architecture migration
+- directive registry migration
+- generic workflow DSL
+- broad GC framework
+- Windows full portability
+- A2/A5 redesign
+
+## 오케스트레이션·콜라보레이션 용어 경계
+
+| term | meaning |
+| --- | --- |
+| workflow_control_plane | harness/P19 durable authority and lifecycle |
+| main_integrator | Main supervision, integration, exact gates, reporting |
+| scheduling_sidecar | .codex/agents/orchestrator.toml legacy identifier |
+| collaboration_transport | worker execution transport adapter |
+| hook_gate | pretool-orchestrator legacy identifier |
+
+- orchestration은 workflow control plane 의미로 사용하며, collaboration은 worker execution transport로 구분한다.
+- 기존 `orchestrator.toml`과 `pretool-orchestrator`는 호환 식별자이므로 이번 bounded correction에서 rename하지 않는다.
+
+## 역사적 phase semantic truth (현재 실행 권한 아님)
+
+<!-- BEGIN CURRENT PHASE SEMANTIC TRUTH -->
+```json
+{"automatic_successor":false,"broad":"NOT_RUN","commit_a":null,"credit":"ZERO","cross_family_state":"NOT_RUN","generation":20,"guardian_state":"NOT_RUN","native_candidate_id":"64a052ae6afdca19666749dd675a0c72ce250fb730222c01976aac1972e6ecf8","next_gate":"NEW_OWNER_ARCHITECTURE_AUTHORITY","predecessor_generation":19,"predecessor_transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","projection_recovery_state":"FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED","report_mode":"LIVE_CURRENT","result_count":0,"review_refs":[],"route_profile_sha256":"eca88e41646520c124a8237e16d8a9a969f44d5293082eccb7bbea48a443adf3","route_revision_id":"478bb51344e553308a3ca74882e13fe152319988e10d9a93b981b1f019e06177","subject_sha256":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","transition_sha256":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19","verifier_state":"NOT_RUN"}
+```
+<!-- END CURRENT PHASE SEMANTIC TRUTH -->
+
+## 진행률 변화
+
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## 현재 작업 실행 현황
+
+| 필드 | 현재 값 |
+| --- | --- |
+| 작업 항목 | v11.10 authority: admitted with one zero-credit migration descriptor and no AR1/G21/reviewer/credit budget increase; recovery circuit: incident g21-ar1-authority-schema-self-lock-875dd627 is ESCALATED_OWNER_REQUIRED after the one repair attempt failed exact production input and postdiff guardian review; G21 publication/review/Broad/Commit remain absent; repair result: commit 65794bf6/tree 78244caf is preserved but REJECT_DO_NOT_INTEGRATE; half-open canary and migration descriptor were not created; parallel evidence: failure analysis, control-plane inventory, Main exact-input preflight, implementation guardian, and independent code review all classify the raw-authority coupling repair as incomplete at zero credit; parallel P21 report contract: 42d443e7 closes missing projection, truncation, and backslash/pipe table fidelity; generic successor 39f68e1a closes strict schema, top-level macro identity, legacy recovery coupling, and candidate/parallel/park visibility findings; 9e7c41d closes current owner/admission/test/next-gate and exact report-verification identity findings; report verification: the complete Pro report regression suite is PASS 214/214 and the full identity suite is PASS 256/256 with one expected skip on exact integrated bytes; focused final human current semantics 25/25, py_compile, and scoped diff-check pass; terminal cleanup: all P21 registered worktrees were removed after clean-state verification while branches and accepted commits remain preserved, including p21/v1110-stale-current-body-correction at 511bee6, p21/v1110-a0-reference-current-body-correction at 15c186c, and p21/v1110-g20-fixture-isolation at a575e67; report truth audit: prior machine freshness still accepted legacy G18/G19 current A0 macro, design, lane, Thin E2E, blocker, and semantic-partition claims; 74de3c2 was guardian-REJECTed, 7fa4469 was superseded before root integration by Main's six-state matrix RED, and final 511bee6/tree 907350f received guardian ACCEPT and is integrated at zero credit; generic circuit semantics: ESCALATED_OWNER_REQUIRED maps only to owner-authority blocking; OPEN/REPAIRING/HALF_OPEN map to incident-based runtime blocking; CLOSED/CLOSED_AFTER_CANARY do not manufacture a circuit blocker and retain other code/platform gate truth; A0/reference truth audit: 3ff839f and f81679b were independently REJECTed before final 15c186c/tree ce941e2 received guardian and code-review ACCEPT/ZERO; current A0 now separates lifecycle 4/8 and independent 0/1 from implementation and recovery-circuit state, while legacy v11-v11.6 reference rows are historical/as-of with no current eligibility or credit; historical identity baseline: exact v11.8 source 4592f586 was restored from two byte-identical preserved copies; test-only workaround and commit 15f1679 were REJECTed before exact content manifest 58e5d85e/delta 397a55d3 received guardian and code-review ACCEPT/ZERO and was integrated; historical pin semantics: missing v11.5/v11.6 prose now requires exact progress/admission/review plus G19/G20 edge and generation-authorization binding; historical work time derives from the transition-bound G20 receipt, locator-absent state is initialized, and foreign/missing/hash-mismatched predecessor files fail closed; structured ledger alignment: closure-v4 attempt 139 records source recovery, rejected test-only and commit subjects, accepted exact content subject, focused 9/9, full identity 256/256 with one expected skip, complete report 211/211, cleanup, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency; final human current semantics: report 79dff374 was independently REJECTed before commits 77a0509 and 535ee1f were rejected; successor 2de6442/tree 94901c1 received guardian and code-review ACCEPT/ZERO and was integrated exactly; final human projection: a normalized successor role now controls near-term, A0-5, and ETA; prior forecast/time accounting is retained; competing Platform verdicts and stale A0-5 rows fail closed; mutable active status is ESCALATED_OWNER_REQUIRED_NEW_OWNER_ARCHITECTURE_AUTHORITY_ZERO_CREDIT; final structured ledger alignment: closure-v4 attempt 140 records rejected/rejected/accepted report subjects, focused 25/25, full report 214/214, identity 256/256 with one expected skip, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency; parallel MR1 diagnostic: one real Terra/high child produced worker commit 00220fca and passed its bounded test, but the lifecycle authority could not prove launch/terminal transport and cleanup reproduced a path-deleted/receipt-absent/ACTIVE-lease partial failure; Main preserved branch/commit and classified it RECOVERED_LEGACY_PARTIAL_ZERO_CREDIT; parallel MR1 successor: exact two-file successor eba94ceb/tree 19668df is preserved but postdiff guardian REJECTed synthetic transport attestation, an unconstructible Main/worker authority boundary, unsafe no-launch inference, non-atomic integration, fail-open process inspection, global prune, and weakened race tests; it is not integrated and no Main tests or real successor oracle ran; parallel Track P P6: read-only rehearsal found 7 Track P delta paths and zero overlap against the available historical 113-path Track C lock, but that lock is not the current Commit A denominator; result is READY_PROVISIONAL_ONLY/ZERO with no rebase, merge, product mutation, or A1 credit; safe-lane exhaustion: inventory and cleanup dry-run were duplicate/low-utility, MR1 is owner-escalated, and P6 is blocked on exact Commit A bytes; no nonduplicate authorized parallel lane remains; immutable lineage: G20, b122, 44d, 5f0, and a327 remain unchanged; request/AR1/G21 execution count remains zero for this recovery |
+| 대략 진행률 | 100% |
+| 시작 시각 (KST) | 2026-07-23 20:15:46 KST |
+| 시작 시각 (UTC) | 2026-07-23T11:15:46Z |
+| 대략 ETA (KST) | 2026-07-24 01:50:40 KST |
+| 대략 ETA (UTC) | 2026-07-23T16:50:40Z |
+| 산정 근거 | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| 불확실성 | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## 현재 실행 권한·복구 회로
+
+- owner: `OWNER_CLARIFICATION_V11_10_FINAL` / `ADMITTED_CURRENT_ZERO_CREDIT` / credit `ZERO`
+- owner source: `harness_v2_owner_clarification_v11_10_FINAL_recovery_circuit_control_plane_split.txt` / `746ef00649c802734f3964cd343e7f0fa0631abbca4a920d3fc2dcc3f916ac16`
+- owner admission: `.harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-10-final-recovery-circuit-control-plane-split.json` / `ac3e50fafdca207ff128f264389ca062f12c39207cf4c0ac2a306bbf7303dbab`
+- recovery circuit: lane `G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY`; incident `g21-ar1-authority-schema-self-lock-875dd627`; state `ESCALATED_OWNER_REQUIRED`
+- runnable: global root `true`; serial lane `false`
+- recovery counters: repair attempts remaining `0`; half-open canaries executed `0`
+- latest macro event: `closure-v4-v11-10-p21-final-human-current-semantics-ledger-aligned` / `P21_FINAL_HUMAN_CURRENT_SEMANTICS_ACCEPTED_INTEGRATED_LEDGER_ALIGNED_ALL_NON_DUPLICATE_LANES_STOPPED_ZERO_CREDIT` / `2026-07-23T16:50:40Z` / credit `ZERO`
+- next gate: `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+
+## 전체 진행률과 현재 macro 진행률
+
+- report mode: `LIVE_CURRENT`
+- accepted macros: `0/11`; strict accepted-macro percent: `0%`
+- active macro: `A0` / `4/8` = `50%`; independent `0/1`
+- equal-macro WIP heuristic: `~4.5%` / confidence `LOW` / advisory only
+- denominator caveat: A2-A10 acceptance denominator는 activation 전 미고정
+- forecast acceptance/candidate/stop/reviewer effect: `ZERO/ZERO/ZERO/ZERO`
+
+## near-term closure chain
+
+- prospective successor exact subject: `ABSENT`; no current execution eligibility
+- immediate gate: `NEW_OWNER_ARCHITECTURE_AUTHORITY` / circuit `ESCALATED_OWNER_REQUIRED`
+
+| gate | state | dependency | estimate |
+| --- | --- | --- | --- |
+| NEW_OWNER_ARCHITECTURE_AUTHORITY | ESCALATED_OWNER_REQUIRED | OWNER_CLARIFICATION_V11_10_FINAL | NOT_ESTIMABLE |
+| prospective successor exact subject | ABSENT | NEW_OWNER_ARCHITECTURE_AUTHORITY | BLOCKED_PENDING_STRUCTURED_NEXT_GATE |
+| ordered reviewers → Broad → Commit A | BLOCKED | prospective successor exact subject | BLOCKED_PENDING_STRUCTURED_NEXT_GATE |
+
+## 예상 일정(ETA)
+
+- forecast baseline: `CURRENT_STRUCTURED_NEXT_GATE`
+- estimate status: `NOT_ESTIMABLE_FROM_STRUCTURED_EVIDENCE`
+- immediate gate: `NEW_OWNER_ARCHITECTURE_AUTHORITY` / circuit `ESCALATED_OWNER_REQUIRED`
+- no estimable calendar from structured evidence
+- prospective successor exact subject is absent; downstream execution remains blocked on `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+- prior forecast source: `SOURCE_NOT_RECORDED`; timestamp `null`; predicted checkpoint `null`; actual outcome `null`; error/invalidator `null`
+- active engineering / owner-blocked / platform-blocked seconds: `null / null / null`; source `SOURCE_NOT_RECORDED`
+
+## 이전 지시 compliance matrix
+
+| authority layer | identity | status | source | credit |
+| --- | --- | --- | --- | --- |
+| owner source | OWNER_CLARIFICATION_V11_10_FINAL | ADMITTED_CURRENT_ZERO_CREDIT | harness_v2_owner_clarification_v11_10_FINAL_recovery_circuit_control_plane_split.txt | ZERO |
+| owner admission | OWNER_CLARIFICATION_V11_10_FINAL | ADMITTED_CURRENT_ZERO_CREDIT | .harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-10-final-recovery-circuit-control-plane-split.json | ZERO |
+| recovery circuit | G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY | ESCALATED_OWNER_REQUIRED | g21-ar1-authority-schema-self-lock-875dd627 | ZERO |
+
+## a.txt advisory review disposition
+
+- authority: `ADVISORY_REVIEW_NOT_OWNER_DIRECTIVE`; source `a.txt` / `3f17bbad5acd…`
+- durable disposition: `.harness/plans/references/harness-v2-refactor/a-txt-parallel-thin-e2e-review-disposition.json` / `295931158ef5…`
+- parallel selection: `ADOPTED_UNDER_AR1_DUPLICATE_SUPPRESSION_ZERO_CREDIT`; this is coordination, not owner authority
+- model attestation: `HISTORICAL_RESOLVED_NOT_CURRENT_AR1_GATE_ZERO_CREDIT`
+- MW1/Thin E2E: `PARKED_BY_AR1_UNTIL_STABLE_INTEGRATION_BOUNDARY_ZERO_CREDIT`; outside G20 Track C, acceptance credit `ZERO`
+- MW1 integration: `PARK_UNTIL_STABLE_INTEGRATION_BOUNDARY`; stable integration boundary까지 parked
+
+## 지난 보고 이후 실제 진척
+
+| current work item |
+| --- |
+| v11.10 authority: admitted with one zero-credit migration descriptor and no AR1/G21/reviewer/credit budget increase |
+| recovery circuit: incident g21-ar1-authority-schema-self-lock-875dd627 is ESCALATED_OWNER_REQUIRED after the one repair attempt failed exact production input and postdiff guardian review; G21 publication/review/Broad/Commit remain absent |
+| repair result: commit 65794bf6/tree 78244caf is preserved but REJECT_DO_NOT_INTEGRATE; half-open canary and migration descriptor were not created |
+| parallel evidence: failure analysis, control-plane inventory, Main exact-input preflight, implementation guardian, and independent code review all classify the raw-authority coupling repair as incomplete at zero credit |
+| parallel P21 report contract: 42d443e7 closes missing projection, truncation, and backslash/pipe table fidelity; generic successor 39f68e1a closes strict schema, top-level macro identity, legacy recovery coupling, and candidate/parallel/park visibility findings; 9e7c41d closes current owner/admission/test/next-gate and exact report-verification identity findings |
+| report verification: the complete Pro report regression suite is PASS 214/214 and the full identity suite is PASS 256/256 with one expected skip on exact integrated bytes; focused final human current semantics 25/25, py_compile, and scoped diff-check pass |
+| terminal cleanup: all P21 registered worktrees were removed after clean-state verification while branches and accepted commits remain preserved, including p21/v1110-stale-current-body-correction at 511bee6, p21/v1110-a0-reference-current-body-correction at 15c186c, and p21/v1110-g20-fixture-isolation at a575e67 |
+| report truth audit: prior machine freshness still accepted legacy G18/G19 current A0 macro, design, lane, Thin E2E, blocker, and semantic-partition claims; 74de3c2 was guardian-REJECTed, 7fa4469 was superseded before root integration by Main's six-state matrix RED, and final 511bee6/tree 907350f received guardian ACCEPT and is integrated at zero credit |
+| generic circuit semantics: ESCALATED_OWNER_REQUIRED maps only to owner-authority blocking; OPEN/REPAIRING/HALF_OPEN map to incident-based runtime blocking; CLOSED/CLOSED_AFTER_CANARY do not manufacture a circuit blocker and retain other code/platform gate truth |
+| A0/reference truth audit: 3ff839f and f81679b were independently REJECTed before final 15c186c/tree ce941e2 received guardian and code-review ACCEPT/ZERO; current A0 now separates lifecycle 4/8 and independent 0/1 from implementation and recovery-circuit state, while legacy v11-v11.6 reference rows are historical/as-of with no current eligibility or credit |
+| historical identity baseline: exact v11.8 source 4592f586 was restored from two byte-identical preserved copies; test-only workaround and commit 15f1679 were REJECTed before exact content manifest 58e5d85e/delta 397a55d3 received guardian and code-review ACCEPT/ZERO and was integrated |
+| historical pin semantics: missing v11.5/v11.6 prose now requires exact progress/admission/review plus G19/G20 edge and generation-authorization binding; historical work time derives from the transition-bound G20 receipt, locator-absent state is initialized, and foreign/missing/hash-mismatched predecessor files fail closed |
+| structured ledger alignment: closure-v4 attempt 139 records source recovery, rejected test-only and commit subjects, accepted exact content subject, focused 9/9, full identity 256/256 with one expected skip, complete report 211/211, cleanup, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency |
+| final human current semantics: report 79dff374 was independently REJECTed before commits 77a0509 and 535ee1f were rejected; successor 2de6442/tree 94901c1 received guardian and code-review ACCEPT/ZERO and was integrated exactly |
+| final human projection: a normalized successor role now controls near-term, A0-5, and ETA; prior forecast/time accounting is retained; competing Platform verdicts and stale A0-5 rows fail closed; mutable active status is ESCALATED_OWNER_REQUIRED_NEW_OWNER_ARCHITECTURE_AUTHORITY_ZERO_CREDIT |
+| final structured ledger alignment: closure-v4 attempt 140 records rejected/rejected/accepted report subjects, focused 25/25, full report 214/214, identity 256/256 with one expected skip, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency |
+| parallel MR1 diagnostic: one real Terra/high child produced worker commit 00220fca and passed its bounded test, but the lifecycle authority could not prove launch/terminal transport and cleanup reproduced a path-deleted/receipt-absent/ACTIVE-lease partial failure; Main preserved branch/commit and classified it RECOVERED_LEGACY_PARTIAL_ZERO_CREDIT |
+| parallel MR1 successor: exact two-file successor eba94ceb/tree 19668df is preserved but postdiff guardian REJECTed synthetic transport attestation, an unconstructible Main/worker authority boundary, unsafe no-launch inference, non-atomic integration, fail-open process inspection, global prune, and weakened race tests; it is not integrated and no Main tests or real successor oracle ran |
+| parallel Track P P6: read-only rehearsal found 7 Track P delta paths and zero overlap against the available historical 113-path Track C lock, but that lock is not the current Commit A denominator; result is READY_PROVISIONAL_ONLY/ZERO with no rebase, merge, product mutation, or A1 credit |
+| safe-lane exhaustion: inventory and cleanup dry-run were duplicate/low-utility, MR1 is owner-escalated, and P6 is blocked on exact Commit A bytes; no nonduplicate authorized parallel lane remains |
+| immutable lineage: G20, b122, 44d, 5f0, and a327 remain unchanged; request/AR1/G21 execution count remains zero for this recovery |
+
+## 현재 A0 상태
+
+- overall_a0_state: `ACTIVE_ZERO_CREDIT`
+- lifecycle: `in_progress`; criteria `4/8`; independent acceptance `0/1`
+- implementation status: `NOT_PROVIDED_BY_CURRENT_EXECUTION_PROJECTION`; no implementation/acceptance inferred
+- recovery circuit state: `ESCALATED_OWNER_REQUIRED`
+- current owner authority: `OWNER_CLARIFICATION_V11_10_FINAL` / `ADMITTED_CURRENT_ZERO_CREDIT`
+- recovery circuit: lane `G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY`; incident `g21-ar1-authority-schema-self-lock-875dd627`
+- runnable global root / serial lane: `true / false`
+- recovery counters: repair attempts remaining `0`; half-open canaries executed `0`
+- next gate: `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+- acceptance_credit: `ZERO`
+- user-facing acceptance claim: `NONE`
+
+## Platform safety와 review unavailability
+
+- Platform safety dispatch event: `없음`
+- Review unavailability event: `없음`
+- Current implementation verdict: `NOT_PROVIDED_BY_CURRENT_EXECUTION_PROJECTION`; no implementation/acceptance inferred
+- Other lanes: Track P `PARKED_COMPLETE_ZERO_CREDIT` / Track C `continuing`
+
+## Main output delivery
+
+- previous turn / event: `PLATFORM_BLOCKED` / `closure-v4-owner-directive-v9-main-output-blocked`
+- current report: `DELIVERED_BY_CURRENT_ATOMIC_PUBLICATION`; verdict: `null`; acceptance credit: `ZERO`
+
+## 현재 사고와 근본 원인
+
+- current recovery incident: `g21-ar1-authority-schema-self-lock-875dd627`
+- recovery circuit: `ESCALATED_OWNER_REQUIRED`
+- lane / incident: `G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY` / `g21-ar1-authority-schema-self-lock-875dd627`
+- runnable global root / serial lane: `true / false`
+- repair attempts remaining / half-open canaries executed: `0 / 0`
+- next gate: `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## 20260717_pro 제안 disposition
+
+| 제안 | 판정 | 적용 phase | 저장소 근거 | 현재 상태 | 변경 여부 |
+| --- | --- | --- | --- | --- | --- |
+| immutable verification receipt | ACCEPT | A0 | .harness/plans/prompts/20260717-a0-closure-pro-feedback-disposition.md | S/C/F/R/T exact authority에 반영 | 유지 |
+| single transactional writer | ACCEPT_WITH_MODIFICATION | A2/A3 | .harness/plans/prompts/20260717-a0-closure-pro-feedback-disposition.md | A0는 최소 exact boundary만 유지 | 유지 |
+| UNKNOWN_OWNER 전부 해소 | REJECT | A0 | .harness/plans/prompts/20260717-a0-closure-pro-feedback-disposition.md | quarantine와 deletion 0 | 유지 |
+| generic workflow DSL 즉시 구현 | DEFER | A2+ | .harness/plans/prompts/20260717-a0-closure-pro-feedback-disposition.md | 두 concrete consumer 전까지 보류 | 유지 |
+| G17 successor recovery transition | UNRESOLVED | A0-5 | .harness/plans/references/harness-v2-refactor/a0-5-identity-authority-contract-v6.md | GENERATION_17_REJECTED_EXACT_ZERO_CREDIT | 신규 blocker |
+
+- 관련 후보 `9`, finding `28`; rejected `5`, invalidated `4`, accepted `0`
+- 각 설계는 mutable authority, false completion, deletion risk 또는 premature abstraction을 줄이는지로 판정함
+
+## 현재 구조와 목표 구조
+
+- 현재: `guardian-loop` / `native-explicit` / `completion-enforced` / `dual-family-high-risk`
+- Main ownership: `integration, tests, final-judgment, user-report`
+- 목표: `native-aware multi-runtime workflow, one control authority, managed artifact separation` (`HARNESS-V2-REFACTOR`=`deferred`)
+
+## 설계 원칙과 다른 대안을 채택하지 않은 이유
+
+- 설계원칙: `single structured authority, same-identity evidence, independent dual-family review, fail-closed transition`
+- legacy transition-only 예외: self-contained body를 복구하지 못하므로 REJECT
+- G16/T rewrite: immutable exact authority를 훼손하므로 REJECT
+- fixed line-count/compactness: 보고 의미 completeness와 무관하므로 acceptance 조건에서 제거
+- 선택: current owner `OWNER_CLARIFICATION_V11_10_FINAL`와 recovery circuit `ESCALATED_OWNER_REQUIRED`를 authoritative current stage로 사용하고 next gate `NEW_OWNER_ARCHITECTURE_AUTHORITY` 전에는 새 acceptance를 추론하지 않음
+
+## Candidate identity
+
+- workflow_candidate_id: `harness-v2-a0-closure-v4`; proposed_subject_id: `3e746cdc945e…`; exact_subject_id: `3e746cdc945e…`
+- subject_path_count: `null`; exact freeze: `29d628453de6…`; receipt: `8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930`
+- retained rejected exact subject: `null`
+- production route/profile/current candidate: `478bb51344e553308a3ca74882e13fe152319988e10d9a93b981b1f019e06177 / eca88e41646520c124a8237e16d8a9a969f44d5293082eccb7bbea48a443adf3 / 64a052ae6afdca19666749dd675a0c72ce250fb730222c01976aac1972e6ecf8`
+
+## 실행 컨텍스트
+
+- branch: `feature/this-change`
+- exact HEAD: `df1f454ded37…`
+- HEAD tree: `54e2ce7a7e7f…`
+- classification: `mixed`
+- index vs HEAD tree: `dirty`
+- worktree vs index: `dirty`
+- index/worktree/untracked/conflict: `78/29/596/0`
+- changed files: `689` / path digest `95e9105f9f20…`
+- route declared scope: `111` paths / `ce9ee448a43e…`
+- Track C denominator: `89` / manifest SHA `ff9eb62e772e…` / credit `ZERO` / status `CURRENT_EXACT`
+
+## A0-1부터 A0-8까지 criterion 상태
+
+파생 count: `4/8`
+
+- criterion 원문 경로: `.harness/plans/active/harness-v2-refactor-plan.md` A0 criteria 1-8
+- A0-4 판단: source-bound Pro report freshness가 원문에 포함되므로 report correction RED 동안 REOPENED, full contract GREEN 뒤 COMPLETE로 복구함
+- 진행률 재계산: `5/8` -> `4/8`; owner directive v3 replaced the criterion map and v5 preserves it; historical label or Track P preparation credit does not transfer, and current A0-4 credit exists only from the accepted f16/f24 prefreeze correction
+
+| criterion | 원문 요약 | 상태 | 상태층 | credit | evidence | 미완료 이유 | 다음 완료조건 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A0-1 | owner directive, active plan, lifecycle order, P26/BIS state를 일관되게 동결 | COMPLETE | structured authority/projection | 있음 | owner directive v5 is durably recorded, independently admitted and post-apply-conformance accepted; active plan and u... | 없음 | current source identity와 freshness 유지 |
+| A0-2 | artifact inventory 완전성, 안전 분류, UNKNOWN_OWNER/ACTIVE_LEASE 격리 | COMPLETE | workspace inventory | 있음 | refreshed exact artifact inventory has 1,565 entries: 47 KEEP_ACCEPTED, 8 ACTIVE_LEASE, and 1,510 UNKNOWN_OWNER with... | 없음 | current source identity와 freshness 유지 |
+| A0-3 | progress/resume/orientation/lifecycle bootstrap의 fail-closed 동작 | COMPLETE | structured authority/projection | 있음 | focused progress, resume, orientation, and lifecycle bootstrap evidence is current; no acceptance credit | 없음 | current source identity와 freshness 유지 |
+| A0-4 | structured authority, deterministic projection, source-bound Pro report freshness | COMPLETE | structured authority/projection | 있음 | the generation-14 combined correction rereview accepted current-lineage supersession, deterministic stage projection,... | 없음 | current source identity와 freshness 유지 |
+| A0-5 | 동일 candidate identity가 freeze/receipt/closure/reviewer와 zero delta를 결합 | PENDING | exact frozen/reviewed | 없음 | Generation 17 remains immutable REJECT/ZERO; Generations 18 and 19 remain immutable SUPERSEDED/ZERO. Generation 20 re... | NEW_OWNER_ARCHITECTURE_AUTHORITY | `NEW_OWNER_ARCHITECTURE_AUTHORITY` 통과 후 prospective successor exact subject와 ordered reviewer quorum |
+| A0-6 | Commit A가 exact implementation candidate만 포함 | PENDING | committed | 없음 | Commit A has not been created | 선행 exact/commit/transition gate 미완료 | criterion 원문과 동일 subject evidence 완료 |
+| A0-7 | clean managed worktree와 committed-state verifier ACCEPT | PENDING | committed-state verified | 없음 | external clean-worktree committed verification has not run | 선행 exact/commit/transition gate 미완료 | criterion 원문과 동일 subject evidence 완료 |
+| A0-8 | A0 accepted → A1 active 별도 transition과 macro report | PENDING | structured authority/projection | 없음 | A0 accepted to A1 active transition has not run | 선행 exact/commit/transition gate 미완료 | criterion 원문과 동일 subject evidence 완료 |
+
+## 전체 A0-A10 macro 상태
+
+| Macro | objective | status | acceptance criteria denominator | complete count | current blocker | next condition |
+| --- | --- | --- | --- | --- | --- | --- |
+| A0 | 현재 상태 동결과 소유권 인벤토리 | active | 8 | 4 | ESCALATED_OWNER_REQUIRED | OWNER_CLARIFICATION_V11_10_FINAL / NEW_OWNER_ARCHITECTURE_AUTHORITY / credit ZERO |
+| A1 | 리팩터링 전 특성화 E2E | planned | 10 | 0 | A0 serial predecessor | 직전 macro acceptance |
+| A2 | portable workflow domain과 cutover 설계 | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+| A3 | 단일 control authority와 transition engine | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+| A4 | native runtime capability와 result publication | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+| A5 | workspace/artifact/report/resume lifecycle | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+| A6 | workflow pack, Base deterministic E2E, runtime parity | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+| A7 | control-plane bug closure | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+| A8 | BIS atomic release와 sync | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+| A9 | P26 S4-B/S4-C/S5 재개 | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+| A10 | E2E 보호 simplification과 legacy removal | planned | 미고정(phase activation 전) | 0 | 선행 macro 미완료 | 직전 macro acceptance |
+
+## current blocker partition
+
+- code_blocker_count: `0`; IDs: 없음
+- owner_authority_blocker_count: `1`; IDs: `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+- platform_blocker_count: `0`; IDs: 없음
+- historical_platform_terminal_count: `0`; current blocker에 합산하지 않음
+- runtime_capability_blocker_count: `0`; IDs: 없음
+- cleanup_blocker_count: `0`; IDs: 없음
+
+## report semantic consistency
+
+- REPORT-CONTRACT lane: `GREEN`; exact report-code blockers: 없음
+- all gates GREEN: `false`; exact failed gates: `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+- resolved findings: count `56`; groups `accepted_prefreeze_clearance_zero_credit`=13, `corrected_green_independently_rereviewed_zero_credit`=7, `corrected_green_independently_reviewed_zero_credit`=3, `corrected_green_nonblocking_zero_credit`=1, `corrected_green_precheck_aba_rereview_resolved_zero_credit`=1, `corrected_green_present_restore_rereview_exposed_unlink_successor_zero_credit`=1, `corrected_green_request_sha_rereview_resolved_zero_credit`=1, `corrected_green_unreviewed_zero_credit`=3, `corrected_local_green_successor_authority_required_zero_credit`=1, `fail_first_and_green_complete_pending_exact_freeze`=1, `local_correction_green_prefreeze_review_pending`=5, `local_correction_green_zero_credit`=5, `local_green_zero_credit_superseded_as_reset_design_input`=9, `local_second_correction_green_prefreeze_review_pending`=4, `recorded_pending_exact_freeze`=1; current effect `NO_CURRENT_BLOCKING_EFFECT`; appendix `machine metadata appendix.resolved_uncredited_finding_ids`
+- prior forecast source: `SOURCE_NOT_RECORDED`; timestamp `null`; predicted checkpoint `null`; actual outcome `null`; error/invalidator `null`
+- active engineering / owner-blocked / platform-blocked seconds: `null / null / null`; source `SOURCE_NOT_RECORDED`
+- full report generation / regression runtime seconds: `null / null`; source `SOURCE_NOT_RECORDED`
+
+## 현재 진행 중인 lane
+
+| lane | mode | state | credit/next dependency |
+| --- | --- | --- | --- |
+| G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY | current recovery | ESCALATED_OWNER_REQUIRED | ZERO / NEW_OWNER_ARCHITECTURE_AUTHORITY |
+| OWNER_CLARIFICATION_V11_10_FINAL | owner authority | ADMITTED_CURRENT_ZERO_CREDIT | ZERO / NEW_OWNER_ARCHITECTURE_AUTHORITY |
+
+### current_work_execution
+
+| current work item |
+| --- |
+| v11.10 authority: admitted with one zero-credit migration descriptor and no AR1/G21/reviewer/credit budget increase |
+| recovery circuit: incident g21-ar1-authority-schema-self-lock-875dd627 is ESCALATED_OWNER_REQUIRED after the one repair attempt failed exact production input and postdiff guardian review; G21 publication/review/Broad/Commit remain absent |
+| repair result: commit 65794bf6/tree 78244caf is preserved but REJECT_DO_NOT_INTEGRATE; half-open canary and migration descriptor were not created |
+| parallel evidence: failure analysis, control-plane inventory, Main exact-input preflight, implementation guardian, and independent code review all classify the raw-authority coupling repair as incomplete at zero credit |
+| parallel P21 report contract: 42d443e7 closes missing projection, truncation, and backslash/pipe table fidelity; generic successor 39f68e1a closes strict schema, top-level macro identity, legacy recovery coupling, and candidate/parallel/park visibility findings; 9e7c41d closes current owner/admission/test/next-gate and exact report-verification identity findings |
+| report verification: the complete Pro report regression suite is PASS 214/214 and the full identity suite is PASS 256/256 with one expected skip on exact integrated bytes; focused final human current semantics 25/25, py_compile, and scoped diff-check pass |
+| terminal cleanup: all P21 registered worktrees were removed after clean-state verification while branches and accepted commits remain preserved, including p21/v1110-stale-current-body-correction at 511bee6, p21/v1110-a0-reference-current-body-correction at 15c186c, and p21/v1110-g20-fixture-isolation at a575e67 |
+| report truth audit: prior machine freshness still accepted legacy G18/G19 current A0 macro, design, lane, Thin E2E, blocker, and semantic-partition claims; 74de3c2 was guardian-REJECTed, 7fa4469 was superseded before root integration by Main's six-state matrix RED, and final 511bee6/tree 907350f received guardian ACCEPT and is integrated at zero credit |
+| generic circuit semantics: ESCALATED_OWNER_REQUIRED maps only to owner-authority blocking; OPEN/REPAIRING/HALF_OPEN map to incident-based runtime blocking; CLOSED/CLOSED_AFTER_CANARY do not manufacture a circuit blocker and retain other code/platform gate truth |
+| A0/reference truth audit: 3ff839f and f81679b were independently REJECTed before final 15c186c/tree ce941e2 received guardian and code-review ACCEPT/ZERO; current A0 now separates lifecycle 4/8 and independent 0/1 from implementation and recovery-circuit state, while legacy v11-v11.6 reference rows are historical/as-of with no current eligibility or credit |
+| historical identity baseline: exact v11.8 source 4592f586 was restored from two byte-identical preserved copies; test-only workaround and commit 15f1679 were REJECTed before exact content manifest 58e5d85e/delta 397a55d3 received guardian and code-review ACCEPT/ZERO and was integrated |
+| historical pin semantics: missing v11.5/v11.6 prose now requires exact progress/admission/review plus G19/G20 edge and generation-authorization binding; historical work time derives from the transition-bound G20 receipt, locator-absent state is initialized, and foreign/missing/hash-mismatched predecessor files fail closed |
+| structured ledger alignment: closure-v4 attempt 139 records source recovery, rejected test-only and commit subjects, accepted exact content subject, focused 9/9, full identity 256/256 with one expected skip, complete report 211/211, cleanup, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency |
+| final human current semantics: report 79dff374 was independently REJECTed before commits 77a0509 and 535ee1f were rejected; successor 2de6442/tree 94901c1 received guardian and code-review ACCEPT/ZERO and was integrated exactly |
+| final human projection: a normalized successor role now controls near-term, A0-5, and ETA; prior forecast/time accounting is retained; competing Platform verdicts and stale A0-5 rows fail closed; mutable active status is ESCALATED_OWNER_REQUIRED_NEW_OWNER_ARCHITECTURE_AUTHORITY_ZERO_CREDIT |
+| final structured ledger alignment: closure-v4 attempt 140 records rejected/rejected/accepted report subjects, focused 25/25, full report 214/214, identity 256/256 with one expected skip, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency |
+| parallel MR1 diagnostic: one real Terra/high child produced worker commit 00220fca and passed its bounded test, but the lifecycle authority could not prove launch/terminal transport and cleanup reproduced a path-deleted/receipt-absent/ACTIVE-lease partial failure; Main preserved branch/commit and classified it RECOVERED_LEGACY_PARTIAL_ZERO_CREDIT |
+| parallel MR1 successor: exact two-file successor eba94ceb/tree 19668df is preserved but postdiff guardian REJECTed synthetic transport attestation, an unconstructible Main/worker authority boundary, unsafe no-launch inference, non-atomic integration, fail-open process inspection, global prune, and weakened race tests; it is not integrated and no Main tests or real successor oracle ran |
+| parallel Track P P6: read-only rehearsal found 7 Track P delta paths and zero overlap against the available historical 113-path Track C lock, but that lock is not the current Commit A denominator; result is READY_PROVISIONAL_ONLY/ZERO with no rebase, merge, product mutation, or A1 credit |
+| safe-lane exhaustion: inventory and cleanup dry-run were duplicate/low-utility, MR1 is owner-escalated, and P6 is blocked on exact Commit A bytes; no nonduplicate authorized parallel lane remains |
+| immutable lineage: G20, b122, 44d, 5f0, and a327 remain unchanged; request/AR1/G21 execution count remains zero for this recovery |
+
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## Thin E2E와 preintegration
+
+- state: `PARKED_COMPLETE_ZERO_CREDIT`
+- foundation: `PREINTEGRATION_MERGED`
+- authored/executed: `3/3` / `3/3`
+- outcomes: `PASS=2, EXPECTED_RED=1, UNEXPECTED_FAILURE=0, ENVIRONMENT_BLOCKED=0`
+- preintegration ref/HEAD: `refs/heads/integration/harness-v2-prework` / `554b07e48c95…`
+- ready/merged/stale: `0/6/0`
+- Track P acceptance credit: `ZERO`; formal A1: `0/10`
+- parallel authority: `OWNER_CLARIFICATION_V11_10_FINAL` / next gate `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+- parallel recovery circuit: `ESCALATED_OWNER_REQUIRED` / lane `G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY`
+
+### current_work_execution
+
+| current work item |
+| --- |
+| v11.10 authority: admitted with one zero-credit migration descriptor and no AR1/G21/reviewer/credit budget increase |
+| recovery circuit: incident g21-ar1-authority-schema-self-lock-875dd627 is ESCALATED_OWNER_REQUIRED after the one repair attempt failed exact production input and postdiff guardian review; G21 publication/review/Broad/Commit remain absent |
+| repair result: commit 65794bf6/tree 78244caf is preserved but REJECT_DO_NOT_INTEGRATE; half-open canary and migration descriptor were not created |
+| parallel evidence: failure analysis, control-plane inventory, Main exact-input preflight, implementation guardian, and independent code review all classify the raw-authority coupling repair as incomplete at zero credit |
+| parallel P21 report contract: 42d443e7 closes missing projection, truncation, and backslash/pipe table fidelity; generic successor 39f68e1a closes strict schema, top-level macro identity, legacy recovery coupling, and candidate/parallel/park visibility findings; 9e7c41d closes current owner/admission/test/next-gate and exact report-verification identity findings |
+| report verification: the complete Pro report regression suite is PASS 214/214 and the full identity suite is PASS 256/256 with one expected skip on exact integrated bytes; focused final human current semantics 25/25, py_compile, and scoped diff-check pass |
+| terminal cleanup: all P21 registered worktrees were removed after clean-state verification while branches and accepted commits remain preserved, including p21/v1110-stale-current-body-correction at 511bee6, p21/v1110-a0-reference-current-body-correction at 15c186c, and p21/v1110-g20-fixture-isolation at a575e67 |
+| report truth audit: prior machine freshness still accepted legacy G18/G19 current A0 macro, design, lane, Thin E2E, blocker, and semantic-partition claims; 74de3c2 was guardian-REJECTed, 7fa4469 was superseded before root integration by Main's six-state matrix RED, and final 511bee6/tree 907350f received guardian ACCEPT and is integrated at zero credit |
+| generic circuit semantics: ESCALATED_OWNER_REQUIRED maps only to owner-authority blocking; OPEN/REPAIRING/HALF_OPEN map to incident-based runtime blocking; CLOSED/CLOSED_AFTER_CANARY do not manufacture a circuit blocker and retain other code/platform gate truth |
+| A0/reference truth audit: 3ff839f and f81679b were independently REJECTed before final 15c186c/tree ce941e2 received guardian and code-review ACCEPT/ZERO; current A0 now separates lifecycle 4/8 and independent 0/1 from implementation and recovery-circuit state, while legacy v11-v11.6 reference rows are historical/as-of with no current eligibility or credit |
+| historical identity baseline: exact v11.8 source 4592f586 was restored from two byte-identical preserved copies; test-only workaround and commit 15f1679 were REJECTed before exact content manifest 58e5d85e/delta 397a55d3 received guardian and code-review ACCEPT/ZERO and was integrated |
+| historical pin semantics: missing v11.5/v11.6 prose now requires exact progress/admission/review plus G19/G20 edge and generation-authorization binding; historical work time derives from the transition-bound G20 receipt, locator-absent state is initialized, and foreign/missing/hash-mismatched predecessor files fail closed |
+| structured ledger alignment: closure-v4 attempt 139 records source recovery, rejected test-only and commit subjects, accepted exact content subject, focused 9/9, full identity 256/256 with one expected skip, complete report 211/211, cleanup, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency |
+| final human current semantics: report 79dff374 was independently REJECTed before commits 77a0509 and 535ee1f were rejected; successor 2de6442/tree 94901c1 received guardian and code-review ACCEPT/ZERO and was integrated exactly |
+| final human projection: a normalized successor role now controls near-term, A0-5, and ETA; prior forecast/time accounting is retained; competing Platform verdicts and stale A0-5 rows fail closed; mutable active status is ESCALATED_OWNER_REQUIRED_NEW_OWNER_ARCHITECTURE_AUTHORITY_ZERO_CREDIT |
+| final structured ledger alignment: closure-v4 attempt 140 records rejected/rejected/accepted report subjects, focused 25/25, full report 214/214, identity 256/256 with one expected skip, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency |
+| parallel MR1 diagnostic: one real Terra/high child produced worker commit 00220fca and passed its bounded test, but the lifecycle authority could not prove launch/terminal transport and cleanup reproduced a path-deleted/receipt-absent/ACTIVE-lease partial failure; Main preserved branch/commit and classified it RECOVERED_LEGACY_PARTIAL_ZERO_CREDIT |
+| parallel MR1 successor: exact two-file successor eba94ceb/tree 19668df is preserved but postdiff guardian REJECTed synthetic transport attestation, an unconstructible Main/worker authority boundary, unsafe no-launch inference, non-atomic integration, fail-open process inspection, global prune, and weakened race tests; it is not integrated and no Main tests or real successor oracle ran |
+| parallel Track P P6: read-only rehearsal found 7 Track P delta paths and zero overlap against the available historical 113-path Track C lock, but that lock is not the current Commit A denominator; result is READY_PROVISIONAL_ONLY/ZERO with no rebase, merge, product mutation, or A1 credit |
+| safe-lane exhaustion: inventory and cleanup dry-run were duplicate/low-utility, MR1 is owner-escalated, and P6 is blocked on exact Commit A bytes; no nonduplicate authorized parallel lane remains |
+| immutable lineage: G20, b122, 44d, 5f0, and a327 remain unchanged; request/AR1/G21 execution count remains zero for this recovery |
+
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## 현재 blocker와 직접 원인
+
+- primary: `ESCALATED_OWNER_REQUIRED` / `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+- owner authority: `OWNER_CLARIFICATION_V11_10_FINAL` / `ADMITTED_CURRENT_ZERO_CREDIT` / credit `ZERO`
+- recovery circuit: `ESCALATED_OWNER_REQUIRED` / lane `G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY` / incident `g21-ar1-authority-schema-self-lock-875dd627`
+- runnable global root / serial lane: `true / false`
+- next gate: `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+
+### current_work_execution
+
+| current work item |
+| --- |
+| v11.10 authority: admitted with one zero-credit migration descriptor and no AR1/G21/reviewer/credit budget increase |
+| recovery circuit: incident g21-ar1-authority-schema-self-lock-875dd627 is ESCALATED_OWNER_REQUIRED after the one repair attempt failed exact production input and postdiff guardian review; G21 publication/review/Broad/Commit remain absent |
+| repair result: commit 65794bf6/tree 78244caf is preserved but REJECT_DO_NOT_INTEGRATE; half-open canary and migration descriptor were not created |
+| parallel evidence: failure analysis, control-plane inventory, Main exact-input preflight, implementation guardian, and independent code review all classify the raw-authority coupling repair as incomplete at zero credit |
+| parallel P21 report contract: 42d443e7 closes missing projection, truncation, and backslash/pipe table fidelity; generic successor 39f68e1a closes strict schema, top-level macro identity, legacy recovery coupling, and candidate/parallel/park visibility findings; 9e7c41d closes current owner/admission/test/next-gate and exact report-verification identity findings |
+| report verification: the complete Pro report regression suite is PASS 214/214 and the full identity suite is PASS 256/256 with one expected skip on exact integrated bytes; focused final human current semantics 25/25, py_compile, and scoped diff-check pass |
+| terminal cleanup: all P21 registered worktrees were removed after clean-state verification while branches and accepted commits remain preserved, including p21/v1110-stale-current-body-correction at 511bee6, p21/v1110-a0-reference-current-body-correction at 15c186c, and p21/v1110-g20-fixture-isolation at a575e67 |
+| report truth audit: prior machine freshness still accepted legacy G18/G19 current A0 macro, design, lane, Thin E2E, blocker, and semantic-partition claims; 74de3c2 was guardian-REJECTed, 7fa4469 was superseded before root integration by Main's six-state matrix RED, and final 511bee6/tree 907350f received guardian ACCEPT and is integrated at zero credit |
+| generic circuit semantics: ESCALATED_OWNER_REQUIRED maps only to owner-authority blocking; OPEN/REPAIRING/HALF_OPEN map to incident-based runtime blocking; CLOSED/CLOSED_AFTER_CANARY do not manufacture a circuit blocker and retain other code/platform gate truth |
+| A0/reference truth audit: 3ff839f and f81679b were independently REJECTed before final 15c186c/tree ce941e2 received guardian and code-review ACCEPT/ZERO; current A0 now separates lifecycle 4/8 and independent 0/1 from implementation and recovery-circuit state, while legacy v11-v11.6 reference rows are historical/as-of with no current eligibility or credit |
+| historical identity baseline: exact v11.8 source 4592f586 was restored from two byte-identical preserved copies; test-only workaround and commit 15f1679 were REJECTed before exact content manifest 58e5d85e/delta 397a55d3 received guardian and code-review ACCEPT/ZERO and was integrated |
+| historical pin semantics: missing v11.5/v11.6 prose now requires exact progress/admission/review plus G19/G20 edge and generation-authorization binding; historical work time derives from the transition-bound G20 receipt, locator-absent state is initialized, and foreign/missing/hash-mismatched predecessor files fail closed |
+| structured ledger alignment: closure-v4 attempt 139 records source recovery, rejected test-only and commit subjects, accepted exact content subject, focused 9/9, full identity 256/256 with one expected skip, complete report 211/211, cleanup, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency |
+| final human current semantics: report 79dff374 was independently REJECTed before commits 77a0509 and 535ee1f were rejected; successor 2de6442/tree 94901c1 received guardian and code-review ACCEPT/ZERO and was integrated exactly |
+| final human projection: a normalized successor role now controls near-term, A0-5, and ETA; prior forecast/time accounting is retained; competing Platform verdicts and stale A0-5 rows fail closed; mutable active status is ESCALATED_OWNER_REQUIRED_NEW_OWNER_ARCHITECTURE_AUTHORITY_ZERO_CREDIT |
+| final structured ledger alignment: closure-v4 attempt 140 records rejected/rejected/accepted report subjects, focused 25/25, full report 214/214, identity 256/256 with one expected skip, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency |
+| parallel MR1 diagnostic: one real Terra/high child produced worker commit 00220fca and passed its bounded test, but the lifecycle authority could not prove launch/terminal transport and cleanup reproduced a path-deleted/receipt-absent/ACTIVE-lease partial failure; Main preserved branch/commit and classified it RECOVERED_LEGACY_PARTIAL_ZERO_CREDIT |
+| parallel MR1 successor: exact two-file successor eba94ceb/tree 19668df is preserved but postdiff guardian REJECTed synthetic transport attestation, an unconstructible Main/worker authority boundary, unsafe no-launch inference, non-atomic integration, fail-open process inspection, global prune, and weakened race tests; it is not integrated and no Main tests or real successor oracle ran |
+| parallel Track P P6: read-only rehearsal found 7 Track P delta paths and zero overlap against the available historical 113-path Track C lock, but that lock is not the current Commit A denominator; result is READY_PROVISIONAL_ONLY/ZERO with no rebase, merge, product mutation, or A1 credit |
+| safe-lane exhaustion: inventory and cleanup dry-run were duplicate/low-utility, MR1 is owner-escalated, and P6 is blocked on exact Commit A bytes; no nonduplicate authorized parallel lane remains |
+| immutable lineage: G20, b122, 44d, 5f0, and a327 remain unchanged; request/AR1/G21 execution count remains zero for this recovery |
+
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## active_code_blockers
+
+| ID | 상태 | 현재 위험 |
+| --- | --- | --- |
+
+## 실행 중단 blocker
+
+- 없음
+
+## resolved_uncredited_findings
+
+- count: `56`; groups: `accepted_prefreeze_clearance_zero_credit`=13, `corrected_green_independently_rereviewed_zero_credit`=7, `corrected_green_independently_reviewed_zero_credit`=3, `corrected_green_nonblocking_zero_credit`=1, `corrected_green_precheck_aba_rereview_resolved_zero_credit`=1, `corrected_green_present_restore_rereview_exposed_unlink_successor_zero_credit`=1, `corrected_green_request_sha_rereview_resolved_zero_credit`=1, `corrected_green_unreviewed_zero_credit`=3, `corrected_local_green_successor_authority_required_zero_credit`=1, `fail_first_and_green_complete_pending_exact_freeze`=1, `local_correction_green_prefreeze_review_pending`=5, `local_correction_green_zero_credit`=5, `local_green_zero_credit_superseded_as_reset_design_input`=9, `local_second_correction_green_prefreeze_review_pending`=4, `recorded_pending_exact_freeze`=1
+- current effect: `NO_CURRENT_BLOCKING_EFFECT`
+- exact IDs: `machine metadata appendix.resolved_uncredited_finding_ids`
+
+## pending_acceptance_gates
+
+- `A0-5`: `PENDING`
+- `A0-6`: `PENDING`
+- `A0-7`: `PENDING`
+- `A0-8`: `PENDING`
+- `Broad`: `not_run`
+- `Commit A`: `PENDING`
+- `committed-state`: `PENDING`
+
+## 테스트 command·result·실행 tree
+
+| verification field | authoritative value |
+| --- | --- |
+| command | python3 -B agent-common/harness/test_plan_status_lint.py |
+| command | python3 -B agent-common/harness/check-progress-gate.py --state .harness/progress_state.json --claim resume |
+| command | python3 -B agent-common/harness/test_refactor_pro_report_freshness.py ProductionCurrentProReportDryRunTest GenericCurrentExecutionProjectionTest Ar1ReportSemanticConsistencyUnitTest.test_ar1_eta_and_runtime_accounting_are_source_bound |
+| command | python3 -B agent-common/harness/test_refactor_pro_report_freshness.py |
+| command | python3 -B agent-common/harness/test_a0_identity_validator.py |
+| command | python3 -m py_compile agent-common/harness/render-refactor-pro-report.py agent-common/harness/test_refactor_pro_report_freshness.py agent-common/harness/test_a0_identity_validator.py |
+| command | git diff --check -- .harness/progress_state.json .harness/plans/active/harness-v2-refactor-plan.md .harness/plans/PLAN_STATUS.md .harness/plans/references/harness-v2-refactor/a0-review-findings.json agent-common/harness/render-refactor-pro-report.py agent-common/harness/test_refactor_pro_report_freshness.py agent-common/harness/test_a0_identity_validator.py |
+| command | python3 -B agent-common/harness/render-refactor-pro-report.py --root . --check |
+| result | final human-current semantics fail-first RED 2/2 then worker focused PASS 25/25; rejected commits 77a0509 and 535ee1f preserved; successor 2de6442 guardian ACCEPT/ZERO and independent code review ACCEPT/ZERO; Main exact integration focused PASS 25/25; complete Pro report regression PASS 214/214; full identity PASS 256/256 with one expected skip; mutable status oracle FAIL 2 then FAIL 1 then plan/status PASS 8/8; py_compile PASS; scoped diff-check PASS; progress resume PASS with the expected six acceptance blockers; atomic full-report regeneration and freshness check PASS. |
+| recorded_at_utc | 2026-07-23T16:55:05Z |
+| execution_tree_identity | branch feature/this-change; HEAD df1f454ded37366277c5a6221e51bc38b262b10c; accepted report successor 2de644222578c73c2ce3aec3486750848cd5209e/tree 94901c1a67c0658f4dec134277a8a958bfeeaf93; renderer a34397fa89f5f558d7d7b48961bf7e98caeb45ea6b6bfaf4f3bc678e89a64f28; report test 47e243ae3ee281e33a1350d18929f874a8c0092ca240660c11c77c3fe1d58d30; plan-status test f819118b381a9dc89504ee6b0f17d79405b12f64a78e0621641cc1bdaafc6b1e; identity test 1636962c3b056868717597daf0dddf2e56280fe5a61133a98360fcf6bf9c1a62; active plan 8981b0644113221483dffb1f03e962a89ef70c58a8718afd5d25ed5256d0b437; PLAN_STATUS 26547b38f059cb12a70e3544d3fc43da672aac58be80552a43ef0df0c52aecd4; structured ledger 2c6161ebe268ea948f3362ee943b6c905356e440cc05a3b231895df5b89c4d65; current MR1 result 31d16516733577ef6e87491497bd4678191436c53276245608ae324790743d19; current P6 result 7203fde732de408dfe3b8c3264271226f01cce8a033398913cd8cef4e3909b90 |
+
+## 현재 focused test 요약
+
+| verification field | authoritative value |
+| --- | --- |
+| command | python3 -B agent-common/harness/test_plan_status_lint.py |
+| command | python3 -B agent-common/harness/check-progress-gate.py --state .harness/progress_state.json --claim resume |
+| command | python3 -B agent-common/harness/test_refactor_pro_report_freshness.py ProductionCurrentProReportDryRunTest GenericCurrentExecutionProjectionTest Ar1ReportSemanticConsistencyUnitTest.test_ar1_eta_and_runtime_accounting_are_source_bound |
+| command | python3 -B agent-common/harness/test_refactor_pro_report_freshness.py |
+| command | python3 -B agent-common/harness/test_a0_identity_validator.py |
+| command | python3 -m py_compile agent-common/harness/render-refactor-pro-report.py agent-common/harness/test_refactor_pro_report_freshness.py agent-common/harness/test_a0_identity_validator.py |
+| command | git diff --check -- .harness/progress_state.json .harness/plans/active/harness-v2-refactor-plan.md .harness/plans/PLAN_STATUS.md .harness/plans/references/harness-v2-refactor/a0-review-findings.json agent-common/harness/render-refactor-pro-report.py agent-common/harness/test_refactor_pro_report_freshness.py agent-common/harness/test_a0_identity_validator.py |
+| command | python3 -B agent-common/harness/render-refactor-pro-report.py --root . --check |
+| result | final human-current semantics fail-first RED 2/2 then worker focused PASS 25/25; rejected commits 77a0509 and 535ee1f preserved; successor 2de6442 guardian ACCEPT/ZERO and independent code review ACCEPT/ZERO; Main exact integration focused PASS 25/25; complete Pro report regression PASS 214/214; full identity PASS 256/256 with one expected skip; mutable status oracle FAIL 2 then FAIL 1 then plan/status PASS 8/8; py_compile PASS; scoped diff-check PASS; progress resume PASS with the expected six acceptance blockers; atomic full-report regeneration and freshness check PASS. |
+| recorded_at_utc | 2026-07-23T16:55:05Z |
+| execution_tree_identity | branch feature/this-change; HEAD df1f454ded37366277c5a6221e51bc38b262b10c; accepted report successor 2de644222578c73c2ce3aec3486750848cd5209e/tree 94901c1a67c0658f4dec134277a8a958bfeeaf93; renderer a34397fa89f5f558d7d7b48961bf7e98caeb45ea6b6bfaf4f3bc678e89a64f28; report test 47e243ae3ee281e33a1350d18929f874a8c0092ca240660c11c77c3fe1d58d30; plan-status test f819118b381a9dc89504ee6b0f17d79405b12f64a78e0621641cc1bdaafc6b1e; identity test 1636962c3b056868717597daf0dddf2e56280fe5a61133a98360fcf6bf9c1a62; active plan 8981b0644113221483dffb1f03e962a89ef70c58a8718afd5d25ed5256d0b437; PLAN_STATUS 26547b38f059cb12a70e3544d3fc43da672aac58be80552a43ef0df0c52aecd4; structured ledger 2c6161ebe268ea948f3362ee943b6c905356e440cc05a3b231895df5b89c4d65; current MR1 result 31d16516733577ef6e87491497bd4678191436c53276245608ae324790743d19; current P6 result 7203fde732de408dfe3b8c3264271226f01cce8a033398913cd8cef4e3909b90 |
+
+## 변경 파일과 commit 상태
+
+- declared path families: .codex: 1, .harness: 47, AGENTS.md: 1, adapters: 5, agent-common: 57
+- changed path count/digest: `689` / `95e9105f9f20…`
+- frozen candidate commit: `86d9fe5e8cd2…`; 이는 Commit A가 아님
+- Commit A: `PENDING`; canonical/synced/deployed: `NOT_ACCEPTED/NOT_RUN/NOT_RUN`
+
+## 상태층 구분
+
+| Layer | Current state | Authority |
+| --- | --- | --- |
+| owner | ADMITTED_CURRENT_ZERO_CREDIT | harness_v2_owner_clarification_v11_10_FINAL_recovery_circuit_control_plane_split.txt |
+| admission | ADMITTED_CURRENT_ZERO_CREDIT | .harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-10-final-recovery-circuit-control-plane-split.json |
+| recovery circuit | ESCALATED_OWNER_REQUIRED | G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY |
+| next gate | NEW_OWNER_ARCHITECTURE_AUTHORITY | OWNER_CLARIFICATION_V11_10_FINAL |
+
+## 완료됐지만 zero-credit인 작업
+
+- G16 structural publication과 guardian platform event는 immutable zero-credit history임
+- Track P 3/3 baseline은 `PARKED_COMPLETE_ZERO_CREDIT`이며 acceptance credit ZERO
+- report contract deterministic GREEN은 reviewer acceptance가 아님
+
+- 없음
+
+## workspace/artifact cleanup
+
+- inventory snapshot: refreshed exact artifact inventory has 1,565 entries: 47 KEEP_ACCEPTED, 8 ACTIVE_LEASE, and 1,510 UNKNOWN_OWNER with zero deletion authorization
+- inventory는 historical snapshot이며 current residue proof로 과장하지 않음
+- destructive cleanup: 금지; UNKNOWN_OWNER mutation `0`; ACTIVE_LEASE mutation `0`
+- active cleanup blockers: `없음`
+- Generation 17 residue audit: `ZERO`
+- report same-directory tmp residue: `0`; broad git clean/rm/reset는 실행하지 않음
+
+## BIS 네 subject
+
+| Subject | A8 | requirement |
+| --- | --- | --- |
+| narrow H-06 | planned | deferred |
+| coverage DB/high-risk routing | planned | deferred |
+| effective Stop root | planned | deferred |
+| generated sync convergence | planned | deferred |
+
+## P26 S4-A/B/C/S5와 BASE-LIVE
+
+| Stage | worklist | requirement |
+| --- | --- | --- |
+| S4-A | done | addressed |
+| S4-B | planned | deferred |
+| S4-C | planned | deferred |
+| S4 overall | planned | deferred |
+| S5 | planned | deferred |
+| BASE-LIVE | PAUSED | A9 전 재개 금지 |
+
+- P26 S4-B: `UNRESOLVED`
+- P26 S4-C/S5: `NOT_STARTED / NOT_STARTED`
+
+## 열린 위험·모순·미검증 가정
+
+- recovery circuit: `ESCALATED_OWNER_REQUIRED`
+- lane / incident: `G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY` / `g21-ar1-authority-schema-self-lock-875dd627`
+- runnable global root / serial lane: `true / false`
+- repair attempts remaining / half-open canaries executed: `0 / 0`
+- next gate: `NEW_OWNER_ARCHITECTURE_AUTHORITY`
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## 다음 macro bundle
+
+- next source: `current_execution_projection`
+- next id: `NEW_OWNER_ARCHITECTURE_AUTHORITY` / status `ESCALATED_OWNER_REQUIRED`
+- authority: `OWNER_CLARIFICATION_V11_10_FINAL` / credit `ZERO`
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## 참고한 파일과 참고 이유
+
+| 파일 | 확인 목적 | 읽은 범위/키 | 판단에 사용한 내용 | fresh 여부 |
+| --- | --- | --- | --- | --- |
+| .harness/plans/active/harness-v2-refactor-plan.md | A0-A10 plan과 완료조건 | A0 criteria, macro/report contract | A0-4가 source-bound Pro freshness를 포함함 | PASS |
+| .harness/progress_state.json | admitted current_execution_projection progress | active_phase, next_action, current_execution_projection, current_work_execution | owner OWNER_CLARIFICATION_V11_10_FINAL; circuit ESCALATED_OWNER_REQUIRED; All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains.; next gate NEW_OWNER_ARCHITECTURE_AUTHORITY | PASS |
+| harness_v2_owner_clarification_v11_10_FINAL_recovery_circuit_control_plane_split.txt | current owner source | identity SHA 746ef00649c8… | OWNER_CLARIFICATION_V11_10_FINAL / ADMITTED_CURRENT_ZERO_CREDIT / credit ZERO | PASS |
+| .harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-10-final-recovery-circuit-control-plane-split.json | current owner admission | identity SHA ac3e50fafdca… | recovery circuit ESCALATED_OWNER_REQUIRED / next gate NEW_OWNER_ARCHITECTURE_AUTHORITY / credit ZERO | PASS |
+| .harness/plans/PLAN_STATUS.md | deterministic session projection | generated A0 block | ledger-derived A0 count/candidate 일치 | PASS |
+| .harness/plans/references/harness-v2-refactor/a0-review-findings.json | candidate/reviewer/zero-credit lineage | active candidate, latest attempt, A0 criteria | G16 immutable history와 A0 4/8 | PASS |
+| .harness/plans/references/harness-v2-refactor/a0-5-identity-authority-contract-v6.md | S/C/F/R/T 및 review order | K1-K4 transition/publish contract | 새 subject successor constructibility 판정 | PASS |
+| .harness/plans/references/harness-v2-refactor/track-p-preintegration.json | Thin E2E와 Track P | preintegration_head, lanes, outcomes | 3/3 실행과 zero-credit 분리 | PASS |
+| pro_out/20260717_harness_refactor_status.txt | 사용자/Pro 전체 보고 | human body, metadata, atomic publication | source freshness와 semantic completeness | PASS |
+| .harness/plans/prompts/20260721-harness-v2-owner-directive-v11-consolidated.md | historical/as-of v11 directive | 고정 serial path, report/G17/review 규칙 | as-of v11: serial/report/review boundary; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| .harness/plans/prompts/20260721-harness-v2-owner-clarification-v11-1-g17-recovery.md | historical/as-of v11.1 clarification | K1/K4, self-lock routing, G16/G17 separation | as-of v11.1: G17 bounded self-lock recovery authority; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| .harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-1.json | historical/as-of v11.1 durable admission | owner gate, predecessor, bounded bundle | as-of v11.1: OWNER_AUTHORIZED recovery admission; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| harness_v2_owner_clarification_v11_2_final.txt | historical/as-of v11.2 clarification | G17 REJECT, three blockers, one G18, route proof | as-of v11.2: G18 one-successor boundary; G19 prohibited; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| .harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-2-final.json | historical/as-of v11.2 durable admission | historical authority, bounded authorization | as-of v11.2: G18 exactly-once admission; G19 prohibited; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| harness_v2_owner_clarification_v11_5_post_g18_projection_self_lock_g19_continuation.txt | historical/as-of v11.5 clarification | G18 immutable, one G19, projection/report preflight | as-of v11.5: G18 was current and exactly one G19 was authorized; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| .harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-5-post-g18-projection-self-lock.json | historical/as-of v11.5 durable admission | historical authority, bounded authorization | as-of v11.5: G19 exactly-once admission; G20 prohibited; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| harness_v2_owner_clarification_v11_6_post_g19_live_equivalence_g20.txt | historical/as-of v11.6 clarification | G19 immutable, one G20, LIVE_CURRENT/forecast contract | as-of v11.6: bounded pre-G20 live-equivalence authority; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| .harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-6-post-g19-live-equivalence-g20.json | historical/as-of v11.6 durable admission | owner/review/source SHA, historical G20 authorization | as-of v11.6: G20 exactly-once admission; G21 prohibited; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PASS |
+| harness_v2_g19_stop_full_review_20260722.md | historical/as-of v11.6 stop independent review | pinned SHA `24b30cee9160…`; historical authority only | as-of v11.6 stop review: VALID_STOP_CAUSED_BY_HARNESS_BUG; historical evidence only; superseded by admitted current_execution_projection; no current execution eligibility | PINNED_HISTORICAL_SOURCE_UNAVAILABLE |
+
+- `PASS` means source identity/freshness only; it does not grant current authority, execution eligibility, or acceptance credit.
+
+## 이전 보고 이후 변경
+
+- changed_since_prior_report: `true`
+- latest macro event: `closure-v4-v11-10-p21-final-human-current-semantics-ledger-aligned` / `P21_FINAL_HUMAN_CURRENT_SEMANTICS_ACCEPTED_INTEGRATED_LEDGER_ALIGNED_ALL_NON_DUPLICATE_LANES_STOPPED_ZERO_CREDIT` / `2026-07-23T16:50:40Z` / credit `ZERO`
+| current work field | authoritative value |
+| --- | --- |
+| progress | 100% |
+| basis | All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains. |
+| uncertainty | The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized. |
+
+## 역사적 호환성 자료
+
+- version-specific phase, generation, reviewer, proposal 자료는 immutable lineage 보존용이며 current owner, recovery circuit, next gate, test result의 권위가 아님.
+
+## ChatGPT Pro 검토 질문
+
+- `OWNER_CLARIFICATION_V11_10_FINAL` owner/admission identity가 current authority와 일치하는가?
+- recovery circuit `ESCALATED_OWNER_REQUIRED`와 next gate `NEW_OWNER_ARCHITECTURE_AUTHORITY`가 일치하는가?
+- current_work_execution과 current_report_verification이 빠짐없이 투영됐는가?
+
+## machine metadata appendix
+
+### Full SHA map
+
+| Identity | Full SHA/OID |
+| --- | --- |
+| exact subject | 3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a |
+| transition | 277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19 |
+| locator | 62549b3e1965f36ea9305871c7735e7e61b91fb5e156e49d722470d5db79d34d |
+| validator verdict | d6b78196616f904114cba2044349a2fd50c60cc96adde2e9124a19e29cba1c71 |
+| candidate tree | 0c1dc87a41e41eb4d43ad4848c4f25abd60e88a5 |
+| report semantic | 4055f5013b1144121ef546ac6d82e323ce110879f61104197c0c4b43d583933a |
+
+### Transition metadata
+
+```json
+{
+  "acceptance_credit": "ZERO",
+  "candidate_id": "3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a",
+  "candidate_source_tree_oid": "0c1dc87a41e41eb4d43ad4848c4f25abd60e88a5",
+  "current_evidence_classification": "FOCUSED_EXACT",
+  "current_exact_manifest_sha256": "29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c",
+  "current_observation_receipt_sha256": "8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930",
+  "current_review_verdict_refs": [],
+  "disposition": "PROVISIONAL_ACCEPT",
+  "generation_edge": {
+    "domain": "a0-generation-supersession-v4",
+    "edge_type": "OWNER_AUTHORIZED_EXACT_REVIEW_SUCCESSOR",
+    "owner_authorization_sha256": "abf04ae4a7960c52a7876646f94e5428fc4b7096ae5226fb7717a11e53d70d09",
+    "predecessor_acceptance_credit": "ZERO",
+    "predecessor_candidate_id": "fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91",
+    "predecessor_disposition": "SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT",
+    "predecessor_generation": 19,
+    "predecessor_locator_sha256": "42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11",
+    "predecessor_transition_sha256": "5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708",
+    "predecessor_validator_verdict_sha256": "b673ba2956bfdd7eef556e38901de44634f1118c5af510566675f271f5b5e398",
+    "schema_version": 4,
+    "successor_candidate_id": "3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a",
+    "successor_candidate_source_tree_oid": "0c1dc87a41e41eb4d43ad4848c4f25abd60e88a5",
+    "successor_exact_manifest_sha256": "29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c",
+    "successor_generation": 20,
+    "successor_observation_receipt_sha256": "8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930",
+    "successor_sealed_source_sha256": "fe3063ab6752ef6f16a318a5ab832a9afcbe67fa8911984fdeb26c9b05d47d89",
+    "supersession_reason": "OWNER_AUTHORIZED_POSTFREEZE_CORRECTION"
+  },
+  "generation_edge_sha256": "1c99dd75c9e257cc1f9701d4e6ea7a0b0d64e5ce954ed869f098903d5425670e",
+  "generation_owner_authorization": {
+    "acceptance_credit": "ZERO",
+    "authorization_type": "G19_POSTPUBLICATION_TO_G20_SINGLE_RECOVERY",
+    "automatic_generation_21": false,
+    "correction_bundle_sha256": "418cdbe9e321ba315b2e96b2f2480684eaca11061ae75d3b0377e1f5b8ce34ec",
+    "domain": "a0-generation-recovery-authorization-v1",
+    "maximum_successors": 1,
+    "owner_active_plan_snapshot_sha256": "99090576c378dc376f9d056b357f3705d35970a65590bf620a28d7475db73955",
+    "owner_admission_sha256": "418cdbe9e321ba315b2e96b2f2480684eaca11061ae75d3b0377e1f5b8ce34ec",
+    "owner_directive_id": "OWNER_CLARIFICATION_V11_6",
+    "owner_directive_sha256": "845dd07dc25339323b8d691a8eae5e06cf2c1ca67011259feaf90b99dbd2b5bf",
+    "owner_source_copy_sha256": "845dd07dc25339323b8d691a8eae5e06cf2c1ca67011259feaf90b99dbd2b5bf",
+    "predecessor_candidate_id": "fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91",
+    "predecessor_candidate_source_tree_oid": "3e444501ac82cb72231046ca286e3caa2b04b90f",
+    "predecessor_exact_manifest_sha256": "33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73",
+    "predecessor_generation": 19,
+    "predecessor_locator_sha256": "42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11",
+    "predecessor_observation_receipt_sha256": "b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6",
+    "predecessor_sealed_source_sha256": "476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9",
+    "predecessor_transition_sha256": "5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708",
+    "predecessor_validator_verdict_sha256": "b673ba2956bfdd7eef556e38901de44634f1118c5af510566675f271f5b5e398",
+    "schema_version": 3,
+    "successor_candidate_id": "3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a",
+    "successor_candidate_source_tree_oid": "0c1dc87a41e41eb4d43ad4848c4f25abd60e88a5",
+    "successor_exact_manifest_sha256": "29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c",
+    "successor_generation": 20,
+    "successor_observation_receipt_sha256": "8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930",
+    "successor_sealed_source_sha256": "fe3063ab6752ef6f16a318a5ab832a9afcbe67fa8911984fdeb26c9b05d47d89"
+  },
+  "generation_owner_authorization_sha256": "abf04ae4a7960c52a7876646f94e5428fc4b7096ae5226fb7717a11e53d70d09",
+  "generation_supersession_sha256": "1c99dd75c9e257cc1f9701d4e6ea7a0b0d64e5ce954ed869f098903d5425670e",
+  "locator_sha256": "62549b3e1965f36ea9305871c7735e7e61b91fb5e156e49d722470d5db79d34d",
+  "macro_report_obligation": true,
+  "next_schedulable_gate": "a0-exact-review.guardian",
+  "next_schedulable_phase": "harness-v2-a0",
+  "predecessor_generation_edge": {
+    "domain": "a0-generation-supersession-v3",
+    "edge_type": "OWNER_AUTHORIZED_EXACT_REVIEW_SUCCESSOR",
+    "owner_authorization_sha256": "888b79b8c93ea2fc825793dca93fac5fc982991d3a3b7a1d5e7459b839bbe7a8",
+    "predecessor_acceptance_credit": "ZERO",
+    "predecessor_candidate_id": "811b9039c68b45f2a0d0d385542038209dde2ba266580869bf6b4b25df4296a6",
+    "predecessor_disposition": "SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT",
+    "predecessor_generation": 18,
+    "predecessor_locator_sha256": "ab4eeb946a2d51816d92d7096ac53dd50b08c52586ab181f77684f333b9bc094",
+    "predecessor_transition_sha256": "99783e89a3fc0fd8df5d42208e81403ccfa6e449a3cb04cfa42a96cf269e9e6a",
+    "predecessor_validator_verdict_sha256": "c20e3f9880bcc3c283cd7c6fbffcdad65fe682aa41316890677fafd1a81d682c",
+    "schema_version": 3,
+    "successor_candidate_id": "fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91",
+    "successor_candidate_source_tree_oid": "3e444501ac82cb72231046ca286e3caa2b04b90f",
+    "successor_exact_manifest_sha256": "33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73",
+    "successor_generation": 19,
+    "successor_observation_receipt_sha256": "b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6",
+    "successor_sealed_source_sha256": "476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9",
+    "supersession_reason": "OWNER_AUTHORIZED_POSTFREEZE_CORRECTION"
+  },
+  "predecessor_generation_edge_sha256": "86549bdf585728f07b3821a14fc37ebe9905e0a7566b9b20989e690b8d2e7c36",
+  "predecessor_generation_owner_authorization": {
+    "acceptance_credit": "ZERO",
+    "authorization_type": "G18_POSTFREEZE_TO_G19_SINGLE_RECOVERY",
+    "automatic_generation_20": false,
+    "correction_bundle_sha256": "9deca428b13696ae75e01ed1194f18d749c57f30cc2fd6dcbaca590bf4d6649e",
+    "domain": "a0-generation-recovery-authorization-v1",
+    "maximum_successors": 1,
+    "owner_active_plan_snapshot_sha256": "eac08bc547c0a7ca955d9226d1962c5f8106028c03417d2cc239afdea52fafe0",
+    "owner_admission_sha256": "9deca428b13696ae75e01ed1194f18d749c57f30cc2fd6dcbaca590bf4d6649e",
+    "owner_directive_id": "OWNER_CLARIFICATION_V11_5",
+    "owner_directive_sha256": "b53695c0196721a9f06fd2cf4d64a02ac4519cea20c43650833791326c896fb0",
+    "owner_source_copy_sha256": "b53695c0196721a9f06fd2cf4d64a02ac4519cea20c43650833791326c896fb0",
+    "predecessor_candidate_id": "811b9039c68b45f2a0d0d385542038209dde2ba266580869bf6b4b25df4296a6",
+    "predecessor_candidate_source_tree_oid": "2636981ce97e88d5ae80ec0a1a3f61b51529214d",
+    "predecessor_exact_manifest_sha256": "0b39ec4b3f1b612441f783fe0e73f983e72f51c0e19658baca882b5858dfac01",
+    "predecessor_generation": 18,
+    "predecessor_locator_sha256": "ab4eeb946a2d51816d92d7096ac53dd50b08c52586ab181f77684f333b9bc094",
+    "predecessor_observation_receipt_sha256": "47b85bb00aa05770bb2167ac93572ba86a0821e7fb0d59d7e4c39aebce41c34b",
+    "predecessor_sealed_source_sha256": "8507ece1de15cf1e269d7125555fd3ff6fbb84603f99c2337190e791dc0023a1",
+    "predecessor_transition_sha256": "99783e89a3fc0fd8df5d42208e81403ccfa6e449a3cb04cfa42a96cf269e9e6a",
+    "predecessor_validator_verdict_sha256": "c20e3f9880bcc3c283cd7c6fbffcdad65fe682aa41316890677fafd1a81d682c",
+    "schema_version": 2,
+    "successor_candidate_id": "fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91",
+    "successor_candidate_source_tree_oid": "3e444501ac82cb72231046ca286e3caa2b04b90f",
+    "successor_exact_manifest_sha256": "33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73",
+    "successor_generation": 19,
+    "successor_observation_receipt_sha256": "b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6",
+    "successor_sealed_source_sha256": "476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9"
+  },
+  "predecessor_generation_owner_authorization_sha256": "888b79b8c93ea2fc825793dca93fac5fc982991d3a3b7a1d5e7459b839bbe7a8",
+  "predecessor_transition": {
+    "acceptance_credit": "ZERO",
+    "broad_closure_ref": null,
+    "candidate_id": "fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91",
+    "candidate_source_tree_oid": "3e444501ac82cb72231046ca286e3caa2b04b90f",
+    "commit_a_ref": null,
+    "committed_verification_ref": null,
+    "current_evidence_classification": "FOCUSED_EXACT",
+    "current_exact_manifest_sha256": "33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73",
+    "current_observation_receipt_sha256": "b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6",
+    "current_review_verdict_refs": [],
+    "disposition": "PROVISIONAL_ACCEPT",
+    "domain": "a0-acceptance-transition-v2",
+    "focused_closure_ref": null,
+    "generation_supersession_sha256": "86549bdf585728f07b3821a14fc37ebe9905e0a7566b9b20989e690b8d2e7c36",
+    "locator_sha256": "42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11",
+    "macro_report_obligation": true,
+    "next_schedulable_gate": "a0-exact-review.guardian",
+    "next_schedulable_phase": "harness-v2-a0",
+    "prior_transition_sha256": null,
+    "schema_version": 2,
+    "sealed_source_sha256": "476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9",
+    "transition_sha256": "5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708",
+    "transition_stage": "PROVISIONAL_EXACT_ACCEPT",
+    "validator_verdict_sha256": "b673ba2956bfdd7eef556e38901de44634f1118c5af510566675f271f5b5e398"
+  },
+  "schema_version": 2,
+  "sealed_source_sha256": "fe3063ab6752ef6f16a318a5ab832a9afcbe67fa8911984fdeb26c9b05d47d89",
+  "transition_sha256": "277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19",
+  "transition_stage": "PROVISIONAL_EXACT_ACCEPT",
+  "validator_verdict_sha256": "d6b78196616f904114cba2044349a2fd50c60cc96adde2e9124a19e29cba1c71"
+}
+```
+
+### Source identities
+
+| Source | SHA-256 |
+| --- | --- |
+| current_locator | 62549b3e1965f36ea9305871c7735e7e61b91fb5e156e49d722470d5db79d34d |
+| acceptance_transition | 277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19 |
+| validator_verdict | d6b78196616f904114cba2044349a2fd50c60cc96adde2e9124a19e29cba1c71 |
+| projection.progress_state | 8047f0599d87196f34708345cc7972541cb22828bd403e8d001a2001e0c48842 |
+| projection.plan_status | 4796dc39610346d0ac02641a5307a015f4f692e5e01f16eb415fc0583e0533d1 |
+| projection.ledger_display | 75ed080fca7974f49321f33833ee9bb0d356adc19a32b11f11a0d84937fb2a2e |
+| projection.runtime_pointer | c65435f142411c16989698408f3c470c2786d20dcb2d7c50ecfc5cee58969257 |
+| ledger | 2c6161ebe268ea948f3362ee943b6c905356e440cc05a3b231895df5b89c4d65 |
+| owner_correction_v10_2 | cb67e15b43cc0a75a0dee1e47e233c498bfcd1037d331dca6ef0affe984f186c |
+| plan_change_v10_2 | 7100bd163df49e8fc50fc8be237afac479706d7695fb83c2c4da28a27196abed |
+| owner_directive_v11 | 3d777e38a210a2488ea547ef5616385bc15ad1ae492f2773524a751431631eb1 |
+| plan_change_v11 | 8a023efd911beed818933160eebd81d7a13e8ef278a9476decb7cdf2b35136f1 |
+| owner_clarification_v11_1 | 24be41bb2117bdaffee4dea5e48ac19835dc8af53990d80d57382dabd679a546 |
+| plan_change_v11_1 | 0c73c57a1b769bacc1d8bc6852bf5b29bf517511fe09965dd61679fc41569e0b |
+| owner_clarification_v11_2 | e265dacdf7251f07a0ca1d174b94b769578f8d8f8cd5206c1d011f2bdfdf3ae6 |
+| plan_change_v11_2 | 6e4703dc53aea8c36415fa77fa6fd68fd87619ea1f4e2e8848cbfd4c4154be09 |
+| owner_clarification_v11_5 | b53695c0196721a9f06fd2cf4d64a02ac4519cea20c43650833791326c896fb0 |
+| latest_stop_review_v11_5 | 8bb11dd636ec5f2ddb4b5b6195e5612e1b4f792af8d541bb85fdf2c319804326 |
+| plan_change_v11_5 | 9deca428b13696ae75e01ed1194f18d749c57f30cc2fd6dcbaca590bf4d6649e |
+| owner_clarification_v11_6 | 845dd07dc25339323b8d691a8eae5e06cf2c1ca67011259feaf90b99dbd2b5bf |
+| latest_stop_review_v11_6 | 24b30cee9160741d8838660495f80653d33325777d721c03a9abf8345e585cc6 |
+| plan_change_v11_6 | 418cdbe9e321ba315b2e96b2f2480684eaca11061ae75d3b0377e1f5b8ce34ec |
+| a_txt_advisory_review | 3f17bbad5acd891efc61dc7d59999b224d831580a4c09d68897cea24f16e3290 |
+| a_txt_advisory_disposition | 295931158ef5b0a2a0f72aef089af45462444f3878941ab93eae8e24558ef2f1 |
+| track_c_lock_v11_6 | b6cba69f19bfc8811f72b3aaca1184478f232538f31ecb5818cd18bd2f0b9c4a |
+| g20_quarantine_baseline | e6f6174aa7701822ae638f2b810be66f3f2a2910daee1d83d6e89b5327f1a129 |
+| current_execution_projection.owner_authority.source | 746ef00649c802734f3964cd343e7f0fa0631abbca4a920d3fc2dcc3f916ac16 |
+| current_execution_projection.owner_authority.admission | ac3e50fafdca207ff128f264389ca062f12c39207cf4c0ac2a306bbf7303dbab |
+| identity_contract | 2cc15f44e67a18c7b3f7e70e491e010fc49e32d5b45f3434ea6856f9830b0201 |
+| pro_disposition | 32db26ceab40d5d390b0679b875ae19fd423107e5508aad15415e1d13cdc742b |
+
+- runtime source count: `30`
+- Git snapshot SHA-256: `d87bcaf6ba4fafc90b8e5e454ffa89dfdc8add3bce13d29f29831e382956b35e`
+
+### Machine projection JSON
+
+<!-- BEGIN HARNESS V2 PRO REPORT METADATA -->
+```json
+{"a0_completed_count":4,"a0_independent_acceptance":"0/1","a0_lifecycle_state":"ACTIVE","a0_total_count":8,"a1_formal_acceptance":"0/10","a_txt_advisory_disposition":{"acceptance_credit":"ZERO","authority":"ADVISORY_REVIEW_NOT_OWNER_DIRECTIVE","disposition_path":".harness/plans/references/harness-v2-refactor/a-txt-parallel-thin-e2e-review-disposition.json","disposition_sha256":"295931158ef5b0a2a0f72aef089af45462444f3878941ab93eae8e24558ef2f1","model_attestation":"HISTORICAL_RESOLVED_NOT_CURRENT_AR1_GATE_ZERO_CREDIT","multiwork_thin_e2e":"PARKED_BY_AR1_UNTIL_STABLE_INTEGRATION_BOUNDARY_ZERO_CREDIT","mw1_integration":"PARK_UNTIL_STABLE_INTEGRATION_BOUNDARY","parallel_selection":"ADOPTED_UNDER_AR1_DUPLICATE_SUPPRESSION_ZERO_CREDIT","source_path":"a.txt","source_sha256":"3f17bbad5acd891efc61dc7d59999b224d831580a4c09d68897cea24f16e3290"},"acceptance_credit":"ZERO","active_code_blocker_ids":[],"active_target_generation_17":{"credit":"ZERO","freeze_sha256":"33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73","generation":19,"locator_sha256":"42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11","receipt_sha256":"b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6","sealed_source_sha256":"476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9","state":"SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT","subject_sha256":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","validator_verdict_sha256":"b673ba2956bfdd7eef556e38901de44634f1118c5af510566675f271f5b5e398"},"active_target_generation_18":null,"active_target_generation_19":null,"active_target_generation_20":{"credit":"ZERO","freeze_sha256":"29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c","generation":20,"locator_sha256":"62549b3e1965f36ea9305871c7735e7e61b91fb5e156e49d722470d5db79d34d","receipt_sha256":"8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930","sealed_source_sha256":"fe3063ab6752ef6f16a318a5ab832a9afcbe67fa8911984fdeb26c9b05d47d89","state":"FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED","subject_sha256":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","transition_sha256":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19","validator_verdict_sha256":"d6b78196616f904114cba2044349a2fd50c60cc96adde2e9124a19e29cba1c71"},"candidate_id":"64a052ae6afdca19666749dd675a0c72ce250fb730222c01976aac1972e6ecf8","candidate_role_state":{"credit":"ZERO","current_after_g21":{"active":false,"locator_sha256":null,"subject_sha256":null,"transition_sha256":null},"current_g20":{"active":true,"immutable":true,"locator_sha256":"62549b3e1965f36ea9305871c7735e7e61b91fb5e156e49d722470d5db79d34d","subject_sha256":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","transition_sha256":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19"},"prospective_g21":{"a0_candidate_id":"5cfadb1003392cb41bba264ba8051e6a14721ffc90ca49bc301ee5e3aa36bd2a","active":false,"candidate_commit_oid":"ee3def55682aedfe10c111cd566aa9210b184563","candidate_tree_oid":"3ca05eadb80e3ac2da2937366d59cf4021f8d651","credit":"ZERO","descriptor_created":true,"descriptor_id":"f48598dd8755f09e6cfc0d05ef0de74d255d999e21dfb0453e9c5a9e438d4db2","descriptor_path":".harness/evidence/prospective-g21-candidates/b1228417a4117c484a9b8c1650709720a42d40246ab7b8cfadffa3179746b4c8.json","descriptor_sha256":"b1228417a4117c484a9b8c1650709720a42d40246ab7b8cfadffa3179746b4c8","expected_delta_path_count":15,"generation_created":false,"native_candidate_id":"bd57ab06f6c64d8ae7793e4e3beca39a2baaf5705daee71c3ff859bdf9b4b680","path_manifest_sha256":"c3e229191473fd12493521ffa7cb2e8919f3c04c1f62283839839153e02c8080","route_profile_id":"139ce22f6eb29589b445f8f57ccf508f90c2c6acb11def0a8f72835d0cea210c","route_revision_id":"095951e87b69a4a9f1a49c424b4c99864e36ef29a81a8e0ed6b1c472272e97fd"},"status":"G21_PROSPECTIVE_DESCRIPTOR_SEALED_F3_FAILED_NO_RETRY_ZERO_CREDIT"},"changed_since_prior_report":true,"current_automatic_successor":false,"current_broad_state":"NOT_RUN","current_commit_a":null,"current_corrected_subject":null,"current_cross_family_state":"NOT_RUN","current_execution_projection":{"domain":"harness-current-execution-projection-v1","latest_macro_event":{"credit":"ZERO","id":"closure-v4-v11-10-p21-final-human-current-semantics-ledger-aligned","occurred_at_utc":"2026-07-23T16:50:40Z","status":"P21_FINAL_HUMAN_CURRENT_SEMANTICS_ACCEPTED_INTEGRATED_LEDGER_ALIGNED_ALL_NON_DUPLICATE_LANES_STOPPED_ZERO_CREDIT"},"next_gate":"NEW_OWNER_ARCHITECTURE_AUTHORITY","owner_authority":{"admission":{"path":".harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-10-final-recovery-circuit-control-plane-split.json","sha256":"ac3e50fafdca207ff128f264389ca062f12c39207cf4c0ac2a306bbf7303dbab"},"credit":"ZERO","id":"OWNER_CLARIFICATION_V11_10_FINAL","source":{"path":"harness_v2_owner_clarification_v11_10_FINAL_recovery_circuit_control_plane_split.txt","sha256":"746ef00649c802734f3964cd343e7f0fa0631abbca4a920d3fc2dcc3f916ac16"},"status":"ADMITTED_CURRENT_ZERO_CREDIT"},"recovery_circuit":{"global_root_runnable":true,"half_open_canaries_executed":0,"incident_id":"g21-ar1-authority-schema-self-lock-875dd627","lane_id":"G21_F3_COMPLETION_PROGRESS_SUCCESSOR_RECOVERY","repair_attempts_remaining":0,"serial_lane_runnable":false,"state":"ESCALATED_OWNER_REQUIRED"},"schema_version":1},"current_failed_check":"POST_G20_PREDICTED_LIVE_SEMANTIC_EQUIVALENCE_MISMATCH","current_generation":20,"current_guardian_state":"NOT_RUN","current_implementation_state":"FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED","current_implementation_verdict":"PROVISIONAL_EXACT_ACCEPT_ZERO_CREDIT","current_owner_authority":null,"current_phase_recovery_state":"FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED","current_predecessor_generation":19,"current_predecessor_transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","current_report_verification":{"commands":["python3 -B agent-common/harness/test_plan_status_lint.py","python3 -B agent-common/harness/check-progress-gate.py --state .harness/progress_state.json --claim resume","python3 -B agent-common/harness/test_refactor_pro_report_freshness.py ProductionCurrentProReportDryRunTest GenericCurrentExecutionProjectionTest Ar1ReportSemanticConsistencyUnitTest.test_ar1_eta_and_runtime_accounting_are_source_bound","python3 -B agent-common/harness/test_refactor_pro_report_freshness.py","python3 -B agent-common/harness/test_a0_identity_validator.py","python3 -m py_compile agent-common/harness/render-refactor-pro-report.py agent-common/harness/test_refactor_pro_report_freshness.py agent-common/harness/test_a0_identity_validator.py","git diff --check -- .harness/progress_state.json .harness/plans/active/harness-v2-refactor-plan.md .harness/plans/PLAN_STATUS.md .harness/plans/references/harness-v2-refactor/a0-review-findings.json agent-common/harness/render-refactor-pro-report.py agent-common/harness/test_refactor_pro_report_freshness.py agent-common/harness/test_a0_identity_validator.py","python3 -B agent-common/harness/render-refactor-pro-report.py --root . --check"],"execution_tree_identity":"branch feature/this-change; HEAD df1f454ded37366277c5a6221e51bc38b262b10c; accepted report successor 2de644222578c73c2ce3aec3486750848cd5209e/tree 94901c1a67c0658f4dec134277a8a958bfeeaf93; renderer a34397fa89f5f558d7d7b48961bf7e98caeb45ea6b6bfaf4f3bc678e89a64f28; report test 47e243ae3ee281e33a1350d18929f874a8c0092ca240660c11c77c3fe1d58d30; plan-status test f819118b381a9dc89504ee6b0f17d79405b12f64a78e0621641cc1bdaafc6b1e; identity test 1636962c3b056868717597daf0dddf2e56280fe5a61133a98360fcf6bf9c1a62; active plan 8981b0644113221483dffb1f03e962a89ef70c58a8718afd5d25ed5256d0b437; PLAN_STATUS 26547b38f059cb12a70e3544d3fc43da672aac58be80552a43ef0df0c52aecd4; structured ledger 2c6161ebe268ea948f3362ee943b6c905356e440cc05a3b231895df5b89c4d65; current MR1 result 31d16516733577ef6e87491497bd4678191436c53276245608ae324790743d19; current P6 result 7203fde732de408dfe3b8c3264271226f01cce8a033398913cd8cef4e3909b90","recorded_at_utc":"2026-07-23T16:55:05Z","result":"final human-current semantics fail-first RED 2/2 then worker focused PASS 25/25; rejected commits 77a0509 and 535ee1f preserved; successor 2de6442 guardian ACCEPT/ZERO and independent code review ACCEPT/ZERO; Main exact integration focused PASS 25/25; complete Pro report regression PASS 214/214; full identity PASS 256/256 with one expected skip; mutable status oracle FAIL 2 then FAIL 1 then plan/status PASS 8/8; py_compile PASS; scoped diff-check PASS; progress resume PASS with the expected six acceptance blockers; atomic full-report regeneration and freshness check PASS."},"current_review_refs":[],"current_reviewer_result_count":0,"current_subject_sha256":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","current_transition_sha256":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19","current_verifier_state":"NOT_RUN","current_work_execution":{"basis":"All nonduplicate work authorized by the current v11.10 checkpoint has been evaluated. The bounded P21 report, historical identity baseline, and final human-current semantic corrections are independently accepted, integrated, and tree-green; G21 and MR1 are separately escalated for architecture authority, P6 is provisionally zero-overlap but blocked on the exact Commit A denominator, and no nonduplicate authorized parallel lane remains.","rough_eta_utc":"2026-07-23T16:50:40Z","rough_progress_percent":100,"started_at_utc":"2026-07-23T11:15:46Z","uncertainty":"The next macro completion time is not estimable because it requires new owner authority for both the G21 control-plane design and the MR1 transport/authority scope. No second G21 or MR1 quick patch, half-open canary, migration F3, AR1, or G21 is authorized.","work_items":["v11.10 authority: admitted with one zero-credit migration descriptor and no AR1/G21/reviewer/credit budget increase","recovery circuit: incident g21-ar1-authority-schema-self-lock-875dd627 is ESCALATED_OWNER_REQUIRED after the one repair attempt failed exact production input and postdiff guardian review; G21 publication/review/Broad/Commit remain absent","repair result: commit 65794bf6/tree 78244caf is preserved but REJECT_DO_NOT_INTEGRATE; half-open canary and migration descriptor were not created","parallel evidence: failure analysis, control-plane inventory, Main exact-input preflight, implementation guardian, and independent code review all classify the raw-authority coupling repair as incomplete at zero credit","parallel P21 report contract: 42d443e7 closes missing projection, truncation, and backslash/pipe table fidelity; generic successor 39f68e1a closes strict schema, top-level macro identity, legacy recovery coupling, and candidate/parallel/park visibility findings; 9e7c41d closes current owner/admission/test/next-gate and exact report-verification identity findings","report verification: the complete Pro report regression suite is PASS 214/214 and the full identity suite is PASS 256/256 with one expected skip on exact integrated bytes; focused final human current semantics 25/25, py_compile, and scoped diff-check pass","terminal cleanup: all P21 registered worktrees were removed after clean-state verification while branches and accepted commits remain preserved, including p21/v1110-stale-current-body-correction at 511bee6, p21/v1110-a0-reference-current-body-correction at 15c186c, and p21/v1110-g20-fixture-isolation at a575e67","report truth audit: prior machine freshness still accepted legacy G18/G19 current A0 macro, design, lane, Thin E2E, blocker, and semantic-partition claims; 74de3c2 was guardian-REJECTed, 7fa4469 was superseded before root integration by Main's six-state matrix RED, and final 511bee6/tree 907350f received guardian ACCEPT and is integrated at zero credit","generic circuit semantics: ESCALATED_OWNER_REQUIRED maps only to owner-authority blocking; OPEN/REPAIRING/HALF_OPEN map to incident-based runtime blocking; CLOSED/CLOSED_AFTER_CANARY do not manufacture a circuit blocker and retain other code/platform gate truth","A0/reference truth audit: 3ff839f and f81679b were independently REJECTed before final 15c186c/tree ce941e2 received guardian and code-review ACCEPT/ZERO; current A0 now separates lifecycle 4/8 and independent 0/1 from implementation and recovery-circuit state, while legacy v11-v11.6 reference rows are historical/as-of with no current eligibility or credit","historical identity baseline: exact v11.8 source 4592f586 was restored from two byte-identical preserved copies; test-only workaround and commit 15f1679 were REJECTed before exact content manifest 58e5d85e/delta 397a55d3 received guardian and code-review ACCEPT/ZERO and was integrated","historical pin semantics: missing v11.5/v11.6 prose now requires exact progress/admission/review plus G19/G20 edge and generation-authorization binding; historical work time derives from the transition-bound G20 receipt, locator-absent state is initialized, and foreign/missing/hash-mismatched predecessor files fail closed","structured ledger alignment: closure-v4 attempt 139 records source recovery, rejected test-only and commit subjects, accepted exact content subject, focused 9/9, full identity 256/256 with one expected skip, complete report 211/211, cleanup, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency","final human current semantics: report 79dff374 was independently REJECTed before commits 77a0509 and 535ee1f were rejected; successor 2de6442/tree 94901c1 received guardian and code-review ACCEPT/ZERO and was integrated exactly","final human projection: a normalized successor role now controls near-term, A0-5, and ETA; prior forecast/time accounting is retained; competing Platform verdicts and stale A0-5 rows fail closed; mutable active status is ESCALATED_OWNER_REQUIRED_NEW_OWNER_ARCHITECTURE_AUTHORITY_ZERO_CREDIT","final structured ledger alignment: closure-v4 attempt 140 records rejected/rejected/accepted report subjects, focused 25/25, full report 214/214, identity 256/256 with one expected skip, zero credit, and unchanged NEW_OWNER_ARCHITECTURE_AUTHORITY dependency","parallel MR1 diagnostic: one real Terra/high child produced worker commit 00220fca and passed its bounded test, but the lifecycle authority could not prove launch/terminal transport and cleanup reproduced a path-deleted/receipt-absent/ACTIVE-lease partial failure; Main preserved branch/commit and classified it RECOVERED_LEGACY_PARTIAL_ZERO_CREDIT","parallel MR1 successor: exact two-file successor eba94ceb/tree 19668df is preserved but postdiff guardian REJECTed synthetic transport attestation, an unconstructible Main/worker authority boundary, unsafe no-launch inference, non-atomic integration, fail-open process inspection, global prune, and weakened race tests; it is not integrated and no Main tests or real successor oracle ran","parallel Track P P6: read-only rehearsal found 7 Track P delta paths and zero overlap against the available historical 113-path Track C lock, but that lock is not the current Commit A denominator; result is READY_PROVISIONAL_ONLY/ZERO with no rebase, merge, product mutation, or A1 credit","safe-lane exhaustion: inventory and cleanup dry-run were duplicate/low-utility, MR1 is owner-escalated, and P6 is blocked on exact Commit A bytes; no nonduplicate authorized parallel lane remains","immutable lineage: G20, b122, 44d, 5f0, and a327 remain unchanged; request/AR1/G21 execution count remains zero for this recovery"]},"exact_review_route_proof":{"active_route":{"legacy_route_sha256":"1ba3426746e168c803278ac1a4bb7dc18448742c5e869e8a4e07b06f513c383f","pointer_path":".harness/runs/harness-v2-a0/active-route.json","pointer_sha256":"d2e6a5effebd7d025562405b680c20f13c6a6e8c2f7e54c93ef29859ee0f4840","profile_path":".harness/runs/harness-v2-a0/route-profiles/24d516b4c99d259ff97e07268afcfd11f9afb68e4f128d1a54c7cb4c36781afb.json","profile_sha256":"eca88e41646520c124a8237e16d8a9a969f44d5293082eccb7bbea48a443adf3","revision_path":".harness/runs/harness-v2-a0/route-revisions/478bb51344e553308a3ca74882e13fe152319988e10d9a93b981b1f019e06177.json","revision_sha256":"0ec37bf74f8b01715d85b6d84d0a11b66199c3195f553669151c8680ed062279","route_revision_id":"478bb51344e553308a3ca74882e13fe152319988e10d9a93b981b1f019e06177","route_semantic_sha256":"e6105c702a35e04da0420d52273d24c2d75eb222e9f21c6f4cd9744f79760776","task_contract_hash":"7265d323237778270963a3f55eb1de39d75fe972ebd0c0057485e8fe50d9bdfa","task_contract_path":".harness/runs/harness-v2-a0/task-contract.json","task_contract_sha256":"894d3289583145d8d556e515a8821dc0156305a9073df5d95d247a19b4bf754b","task_profile_id":"24d516b4c99d259ff97e07268afcfd11f9afb68e4f128d1a54c7cb4c36781afb"},"canonical_model_map":{"active_profile":"codex-pro","path":".harness/model-map.json","sha256":"4fc6f7e39f6fd3c77d597e2ea5783214342620ae4be37485f4fa83d46c07719b"},"checked_at":"2026-07-22T08:01:10Z","checks":{"answer_grounding":"PASS","current_route_for_dispatch":"PASS_FINAL_NATIVE_G20_A0_PUBLICATION_PENDING","dispatch_status":"EXPECTED_NOT_RUN_G20_ABSENT","doctor":"PASS","model_map":"PASS","role_and_transport_tests":"PASS_CURRENT_PRE_G20","routing_evidence":"PASS_62_OF_62_CURRENT_G20_ROUTE_RECOVERY_INCLUDED","runtime_composition":"PASS"},"credit":"ZERO","current_effect":"NO_LONGER_STOP_AUTHORITY","duplicate_dispatches":{"dispatch_count":0,"duplicate_count":0,"scope":"route_revision_id=478bb513...; generation=20; a0_subject=absent; required roles","status":"NO_CURRENT_DISPATCHES_EXPECTED_BEFORE_G20"},"gaps":[{"detail":"The final 111-path route/native subject is sealed at candidate bf9bbbb7..., but exact A0 Generation 20 is absent until the same-production preflight and one authorized publication complete.","id":"CURRENT_A0_GENERATION_20_PUBLICATION_PENDING"},{"detail":"No G20 reviewer dispatch, rich result, minimal verdict, or T review ref exists before exact G20 publication; reviewer count zero is expected.","id":"CURRENT_RESULT_CHAIN_ABSENT"}],"main":{"config_path":".codex/config.toml","config_sha256":"964521e9da0781cf82af38b8acb0a214d217894e886ab3ad97950802bd43958c","effort":"xhigh","model":"gpt-5.6-sol","result":"PASS","runtime":"codex"},"nested_reviewer_spawn":{"configured_codex_max_depth":1,"configured_route_max_depth":1,"observed_current_route_nested_dispatch_count":0,"reason":"agent-common/harness/model-routing.md lines 109-114 state max_depth=1 is a compatibility preference and recursive delegation remains blocked pending a mechanically verified root-only spawn control","status":"NOT_MECHANICALLY_PROVEN"},"next_dependency":"Pass PRE_G20_LIVE_EQUIVALENCE_PREFLIGHT, publish exactly one G20, then produce the post-G20 pre-dispatch proof before guardian dispatch.","proof_type":"EXISTING_PATH_READ_ONLY_ZERO_CREDIT","provider_probe":{"external_actions":0,"reason":"v11.2 prohibits a standalone provider-availability probe","runtime_actions":0,"status":"NOT_RUN"},"residue":{"repository_writes":0,"temporary_artifact":null},"result_authority_chain":{"codex_hook_status":"unavailable-session-preflight-missing","complete_chain_proven":false,"current_route_dispatch_count":0,"current_route_evidence_directory_exists":true,"current_route_rich_result_count":0,"g17_minimal_verdict":{"path":".harness/evidence/authority/f5a378d823afca75aaba8d407dd16f8403def2b2111c03fbc729933a57a0dc05.review-verdict.json","sha256":"f5a378d823afca75aaba8d407dd16f8403def2b2111c03fbc729933a57a0dc05","status":"MINIMAL_ONLY_NOT_A_COMPLETE_V11_2_RESULT_CHAIN"},"historical_results":"schema_version=1 historical compatibility evidence only; non-crediting for current native lineage","required_chain":"raw route-selected runtime lifecycle/output -> official route-bound rich result/envelope with actual-model attestation -> artifact-quality validation -> exact minimal A0 verdict -> T review ref"},"review_packet_binding":{"byte_count_bound":true,"child_context":"agent-common/harness/vnext.py:_codex_transport_child_context","rendered_packet_sha_bound":true,"route_state_producer_output_schema_bound":true,"status":"PRODUCTION_BINDING_IMPLEMENTED_ACTUAL_G20_PACKET_PENDING","template_sha_bound":true,"transport_prepare":"agent-common/harness/vnext.py:do_codex_transport_prepare","truncation_bound":true},"review_result_derivation":{"minimal_consumer":"agent-common/harness/a0_identity_validator.py:_validate_review_refs","minimal_schema":"a0-review-verdict-v1","production_deriver_exists":true,"rich_publisher":"agent-common/harness/vnext.py:do_record_agent_result","rich_validator":"agent-common/harness/vnext.py:_valid_agent_result","status":"PRODUCTION_DERIVER_AND_MODEL_ATTESTATION_IMPLEMENTED_ACTUAL_G20_RESULT_PENDING"},"roles":[{"effort":"high","installed_path":".codex/agents/guardian.toml","installed_sha256":"64d16d5e48c08443b4f285348512afefbb841745ca4aebf0470637dcc010ea14","model":"gpt-5.6-sol","model_tier":"strong","requirement_id":"guardian@codex","result":"PASS","role":"guardian","route_profile_sha256":"24d516b4c99d259ff97e07268afcfd11f9afb68e4f128d1a54c7cb4c36781afb","runtime":"codex","source_path":"adapters/codex/agents/guardian.toml","source_sha256":"64d16d5e48c08443b4f285348512afefbb841745ca4aebf0470637dcc010ea14"},{"effort":"high","installed_path":".codex/agents/verifier.toml","installed_sha256":"d4b911ce54b10636fb38b30a2c82b4eb258fc2684f5b84dd700ac1c3f318a99c","model":"gpt-5.6-sol","model_tier":"strong","requirement_id":"verifier@codex","result":"PASS","role":"verifier","route_profile_sha256":"24d516b4c99d259ff97e07268afcfd11f9afb68e4f128d1a54c7cb4c36781afb","runtime":"codex","source_path":"adapters/codex/agents/verifier.toml","source_sha256":"d4b911ce54b10636fb38b30a2c82b4eb258fc2684f5b84dd700ac1c3f318a99c"},{"effort":"high","fallback_model_tier":"none","installed_path":".claude/agents/cross-family-reviewer.md","installed_sha256":"3ff888ef4ab79a6f42d28685dccb12bf467d087f72c992e6c220f39bf2faaac7","model":"opus","model_tier":"strong","required":true,"requirement_id":"cross-family-reviewer@claude","result":"PASS","role":"cross-family-reviewer","route_profile_sha256":"24d516b4c99d259ff97e07268afcfd11f9afb68e4f128d1a54c7cb4c36781afb","runtime":"claude","source_path":"adapters/claude/agents/cross-family-reviewer.md","source_sha256":"3ff888ef4ab79a6f42d28685dccb12bf467d087f72c992e6c220f39bf2faaac7"}],"runtime_composition":{"active_profile":"owner-default","audit_policy":"dual-family-high-risk","path":".harness/runtime-composition.json","resolved_profile_sha256":"1a7b5095543b39da3c0ccd0b5189df8b77c53def442bfd59b590cd0afdf8daf6","sha256":"30ca9424085bb3112c37925333ad4e1d34dbdd5c04ef2c8baf749074ba8ed705"},"status":"PENDING","subject_identity_bridge":{"a0_candidate_id":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","a0_identity_domain":"a0-candidate-v6","base_commit":"13e916dce6c28f85f67f8e1c1a7ebd726462bc5b","native_identity_domain":"candidate-v2","native_vnext_candidate_id":"bf9bbbb797e37bde3b5cf39b25853eb5e7f92bf9a029fd0aeef46177170d5a91","route_revision_id":"478bb51344e553308a3ca74882e13fe152319988e10d9a93b981b1f019e06177","same_identity":false,"source_tree":"05e5aaa0e306652880e6e48c1449c2dd75858b43","status":"PRODUCTION_BRIDGE_FINAL_NATIVE_G20_A0_PUBLICATION_PENDING"},"v11_3_disposition":"SUPERSEDED_BY_PRE_G18_POST_G18_POST_RESULT_PROOF_SPLIT"},"exact_subject_id":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","execution_blocker":null,"externally_unavailable_review_slots":[],"focused_receipt_sha256":"8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930","freeze_sha256":"29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c","generation":20,"generation_17_exact_state":"SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT","generation_17_guardian_correction":{"bundle_path":".harness/plans/references/harness-v2-refactor/generation-17-guardian-correction-bundle.json","bundle_sha256":"0d0c0dc670b2aa5aeb35ada3da65d746d49ef63ab99be18fbc55cb86d9b01bd5","credit":"ZERO","fail_first":"RED_3_OF_3","finding_count":3,"focused":"PASS_5_OF_5","full_identity":"PASS_95_OF_95","independent_reviews":["ACCEPT","ACCEPT"],"residue":"ZERO","result_path":".harness/plans/references/harness-v2-refactor/generation-17-guardian-correction-result.json","status":"GREEN_INDEPENDENTLY_REVIEWED_ZERO_CREDIT"},"generation_17_guardian_review":{"broad":"NOT_RUN","commit_a":null,"credit":"ZERO","finding_ids":["g17-guardian-f1-publisher-full-validator-binding","g17-guardian-f2-exact-owner-generation-authorization","g17-guardian-f3-cwd-expected-actual-binding"],"locator_sha256":"0c99a8fb1de1e03f7be231e66ab8b5a6e0a78804b97b56d7361c3569273935dc","report_wording_disposition":"OUT_OF_SCOPE_A1_A2_A5_A7_A10","requirement_id":"guardian@codex","review_classification":"GUARDIAN_EXACT","review_verdict_sha256":"f5a378d823afca75aaba8d407dd16f8403def2b2111c03fbc729933a57a0dc05","subject_sha256":"46cebf928cbfccce51bf93cbfb83707261ca927944a69c37409ae4eb8728d099","transition_sha256":"dd4ad019fe8c65fccd20e7de806214b8fc88f6785dcda684dd3f7fd3667d1940","validator_verdict_sha256":"3a047bd231a86e563149879de3fc04f6b545a235ce9e0910b6ee120632084265","verdict":"REJECT"},"generation_17_precondition":{"activation_observation":{"activated_at":null,"first_observed_active_at":"2026-07-21T09:20:34Z","publication_result":"ALREADY_PUBLISHED"},"checked_at":"2026-07-21T09:20:34Z","credit":"ZERO","failed_check":null,"generation_id":"generation-17","guardian_dispatched":true,"id":"generation-17-precondition-v11-1","reason_codes":[],"required_resolution":null,"residue":"ZERO","status":"GENERATION_17_REJECTED_EXACT_ZERO_CREDIT","subject_sha256":"46cebf928cbfccce51bf93cbfb83707261ca927944a69c37409ae4eb8728d099"},"generation_18_precondition":{"broad":"NOT_RUN","commit_a":null,"credit":"ZERO","disposition":"PRESERVE_G18_AND_PREPARE_ONE_OWNER_AUTHORIZED_G19","failed_check":"V11_4_POST_G18_REPORT_PROJECTION_CONSTRUCTIBILITY_CYCLE","guardian_dispatched":false,"id":"generation-18-precondition-g17-guardian-correction-bundle","locator_sha256":"ab4eeb946a2d51816d92d7096ac53dd50b08c52586ab181f77684f333b9bc094","proposal_path":".harness/plans/references/harness-v2-refactor/generation-18-route-integration-correction-bundle.json","proposal_sha256":"bd46aba2989a18a8dfddb0b8a9f29e5858acc7ffb4454d47e5f07dece7ef27f3","reason_codes":["POST_STATE_CONSTRUCTIBILITY_NOT_PREFLIGHTED","VERSIONED_REPORT_AUTHORITY_BRANCH_CONFLICT"],"status":"FROZEN_EXACT_ZERO_CREDIT_POSTFREEZE_CORRECTION_REQUIRED","subject_sha256":"811b9039c68b45f2a0d0d385542038209dde2ba266580869bf6b4b25df4296a6","successor_condition":"V11_5_BOUNDED_CORRECTION_GREEN_AND_PREDICTED_POST_G19_STATE_PASS","transition_sha256":"99783e89a3fc0fd8df5d42208e81403ccfa6e449a3cb04cfa42a96cf269e9e6a"},"generation_19_precondition":{"broad":"NOT_RUN","commit_a":null,"created":true,"credit":"ZERO","disposition":"V11_6_OWNER_AUTHORIZED_BOUNDED_PRE_G20_CORRECTION_ACTIVE","failed_check":"POST_G19_LIVE_REPORT_VALIDATOR_EQUIVALENCE_GAP","guardian_dispatched":false,"id":"generation-19-precondition-v11-5-post-g18-projection-recovery","owner_authorized_successor_count":1,"post_state_constructibility":"FAIL","predecessor_locator_sha256":"ab4eeb946a2d51816d92d7096ac53dd50b08c52586ab181f77684f333b9bc094","predecessor_subject_sha256":"811b9039c68b45f2a0d0d385542038209dde2ba266580869bf6b4b25df4296a6","predecessor_transition_sha256":"99783e89a3fc0fd8df5d42208e81403ccfa6e449a3cb04cfa42a96cf269e9e6a","reason_codes":["V11_4_POST_G18_REPORT_PROJECTION_CONSTRUCTIBILITY_CYCLE","GENERATION_PUBLICATION_POST_STATE_PREFLIGHT_COVERAGE_GAP","G19_PREBUILT_REQUEST_VERIFIER_WITHOUT_PRODUCTION_CONSTRUCTOR","G19_SYNTHETIC_CONSTRUCTOR_FIXTURE_DID_NOT_BIND_V11_5_G18_AUTHORITY","G19_NATIVE_POINTER_AND_A0_SUBJECT_IDENTITY_COLLISION","G19_PREDICTED_FULL_REPORT_CONTRACT_UNPROVEN","G19_PUBLISHER_UNDER_LOCK_SOURCE_REVALIDATION_GAP","G19_PROJECTION_APPLY_GENERATION_CONTEXT_DROPPED","G19_OUTER_STATE_OPTIONAL_SEMANTICS_FALSE_PASS","G19_REVIEW_BRIDGE_DERIVATION_GENERATION18_HARDCODE","G19_LOCKED_SNAPSHOT_LOGICAL_SOURCE_REVALIDATION_GAP","POST_G19_PRE_DISPATCH_CONSTRUCTIBILITY_GAP","G19_PUBLISHER_NESTED_LIFECYCLE_LOCK_SELF_DEADLOCK","G19_LEGACY_SNAPSHOT_MODE_COMPATIBILITY_GAP","POST_G19_LIVE_REPORT_VALIDATOR_EQUIVALENCE_GAP"],"status":"SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT","subject_sha256":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91"},"generation_20_precondition":{"broad":"NOT_RUN","commit_a":null,"created":true,"credit":"ZERO","failed_check":"POST_G20_PREDICTED_LIVE_SEMANTIC_EQUIVALENCE_MISMATCH","guardian_dispatched":false,"id":"generation-20-precondition-v11-6-post-g19-live-equivalence-recovery","owner_authorized_successor_count":1,"pre_g20_live_equivalence":"PASS","predecessor_locator_sha256":"42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11","predecessor_subject_sha256":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","predecessor_transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","status":"FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED","subject_sha256":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a"},"generation_observation_receipts":{"generation_17":{"sha256":"b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6","status":"EXISTS"},"generation_18":{"sha256":null,"status":"ABSENT"}},"generation_projection":{"acceptance_credit":"ZERO","authorized_successor":null,"current":{"credit":"ZERO","freeze_sha256":"29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c","generation":20,"locator_sha256":"62549b3e1965f36ea9305871c7735e7e61b91fb5e156e49d722470d5db79d34d","receipt_sha256":"8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930","sealed_source_sha256":"fe3063ab6752ef6f16a318a5ab832a9afcbe67fa8911984fdeb26c9b05d47d89","state":"FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED","subject_sha256":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","transition_sha256":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19","validator_verdict_sha256":"d6b78196616f904114cba2044349a2fd50c60cc96adde2e9124a19e29cba1c71"},"current_exact_generation":20,"history":[{"credit":"ZERO","freeze_sha256":"33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73","generation":19,"locator_sha256":"42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11","receipt_sha256":"b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6","sealed_source_sha256":"476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9","state":"SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT","subject_sha256":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","validator_verdict_sha256":"b673ba2956bfdd7eef556e38901de44634f1118c5af510566675f271f5b5e398"}],"next_gate":"NEW_OWNER_ARCHITECTURE_AUTHORITY"},"git_snapshot_sha256":"d87bcaf6ba4fafc90b8e5e454ffa89dfdc8add3bce13d29f29831e382956b35e","harness_self_lock_incident":null,"historical_generation_16":{"credit":"ZERO","disposition":"SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT","exact_subject_id":"b0cfda039bbf557f940e1c379a40a6df01c1852b46fb142b84c50e7c4348cc42","freeze_sha256":"2359d3ae67bf2ada61c012b6d20bdfcca47be4dd15811cd158fb23f25014b600","guardian_result_artifact":null,"guardian_verdict":null,"locator_sha256":"b078e906cad835de4a2cd913ecc182e70883c467bd5801da8f155848924ba229","receipt_sha256":"d511bc55c11cafaac41f7ba84d3e5ca780378b30975aeb50115f81994aa62b68","sealed_source_sha256":"1ffaf2f6dd0966799a6c96e47a43c44f626a0f76f7eb3910a5fff13f9b7284a6","transition_sha256":"146553fd5f068da3802ef5cc4e43468969147efaf42172f44a66e39023460c06","validator_verdict_sha256":"02b2e47b9767b9907740b4b3bf8f9732549b20bb17f2fba78f9aac6b16cf9931"},"historical_rereview":null,"historical_v11_6_review_source":{"authority":"HISTORICAL_INDEPENDENT_REVIEW_ZERO_CREDIT","disposition":"PINNED_HISTORICAL_SOURCE_UNAVAILABLE","path":"harness_v2_g19_stop_full_review_20260722.md","sha256":"24b30cee9160741d8838660495f80653d33325777d721c03a9abf8345e585cc6"},"implementation_audits":[],"latest_attempt_id":"closure-v4-v11-10-p21-final-human-current-semantics-accepted-integrated","latest_event_at":"2026-07-23T16:55:05Z","latest_macro_event":{"credit":"ZERO","id":"closure-v4-v11-10-p21-final-human-current-semantics-ledger-aligned","occurred_at_utc":"2026-07-23T16:50:40Z","status":"P21_FINAL_HUMAN_CURRENT_SEMANTICS_ACCEPTED_INTEGRATED_LEDGER_ALIGNED_ALL_NON_DUPLICATE_LANES_STOPPED_ZERO_CREDIT"},"main_output_delivery":{"current_report":"DELIVERED_BY_CURRENT_ATOMIC_PUBLICATION","previous_event_id":"closure-v4-owner-directive-v9-main-output-blocked","previous_turn":"PLATFORM_BLOCKED"},"next_gate":"NEW_OWNER_ARCHITECTURE_AUTHORITY","next_independent_review_authority":"G20_GUARDIAN_EXACT","other_lanes":{"track_c":"continuing","track_p":"PARKED_COMPLETE_ZERO_CREDIT"},"owner_clarification_v11_3":null,"owner_clarification_v11_4":null,"owner_clarification_v11_5":{"admission_path":".harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-5-post-g18-projection-self-lock.json","admission_sha256":"9deca428b13696ae75e01ed1194f18d749c57f30cc2fd6dcbaca590bf4d6649e","automatic_generation_20":false,"credit":"ZERO","generation_18_immutable":true,"generation_19_owner_authorized_successors":1,"model_routing_operational_debug":"REQUIRED_PARALLEL_ZERO_CREDIT","next_independent_review_authority":"G19_GUARDIAN_EXACT","source_path":"harness_v2_owner_clarification_v11_5_post_g18_projection_self_lock_g19_continuation.txt","source_sha256":"b53695c0196721a9f06fd2cf4d64a02ac4519cea20c43650833791326c896fb0","status":"AUTHORIZED","supporting_review_path":"harness_v2_post_g18_stop_independent_review_20260722.md","supporting_review_sha256":"8bb11dd636ec5f2ddb4b5b6195e5612e1b4f792af8d541bb85fdf2c319804326","v11_4_post_g18_stop_resolved":true},"owner_clarification_v11_6":{"admission_path":".harness/plans/references/harness-v2-refactor/plan-change-owner-clarification-v11-6-post-g19-live-equivalence-g20.json","admission_sha256":"418cdbe9e321ba315b2e96b2f2480684eaca11061ae75d3b0377e1f5b8ce34ec","automatic_generation_21":false,"credit":"ZERO","generation_19_immutable":true,"generation_20_owner_authorized_successors":1,"model_routing_operational_debug":"CONTINUE_PARALLEL_ZERO_CREDIT_NO_SPARK_FORCING","mw1_integration":"PARKED_OUTSIDE_G20_TRACK_C","next_independent_review_authority":"G20_GUARDIAN_EXACT","source_path":"harness_v2_owner_clarification_v11_6_post_g19_live_equivalence_g20.txt","source_sha256":"845dd07dc25339323b8d691a8eae5e06cf2c1ca67011259feaf90b99dbd2b5bf","status":"AUTHORIZED","stop_action_classification":"VALID_OWNER_GATED_STOP_UNDER_V11_5","stop_combined_classification":"VALID_STOP_CAUSED_BY_HARNESS_BUG","stop_root_cause":"HARNESS_BUG","supporting_review_path":"harness_v2_g19_stop_full_review_20260722.md","supporting_review_sha256":"24b30cee9160741d8838660495f80653d33325777d721c03a9abf8345e585cc6"},"pending_acceptance_gate_ids":["A0-5","A0-6","A0-7","A0-8","Broad","Commit A","committed-state"],"phase_semantics":{"automatic_successor":false,"broad":"NOT_RUN","commit_a":null,"credit":"ZERO","cross_family_state":"NOT_RUN","generation":20,"guardian_state":"NOT_RUN","native_candidate_id":"64a052ae6afdca19666749dd675a0c72ce250fb730222c01976aac1972e6ecf8","next_gate":"NEW_OWNER_ARCHITECTURE_AUTHORITY","predecessor_generation":19,"predecessor_transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","projection_recovery_state":"FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED","report_mode":"LIVE_CURRENT","result_count":0,"review_refs":[],"route_profile_sha256":"eca88e41646520c124a8237e16d8a9a969f44d5293082eccb7bbea48a443adf3","route_revision_id":"478bb51344e553308a3ca74882e13fe152319988e10d9a93b981b1f019e06177","subject_sha256":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","transition_sha256":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19","verifier_state":"NOT_RUN"},"platform_safety_dispatch_events":[],"post_g18_projection_recovery":{"classification":"HARNESS_SELF_LOCK","credit":"ZERO","current_code_blocker":"POST_G19_LIVE_REPORT_VALIDATOR_EQUIVALENCE_GAP","current_report":"STALE_INVALID_POST_G19_LIVE_REPORT_VALIDATOR_EQUIVALENCE_GAP","fail_first":{"context_source":"RED_THEN_GREEN","full_document_apply_and_outer_semantics":"RED_THEN_GREEN_IDENTITY_142_OF_142_REPORT_140_OF_140","g19_bridge_packet_derivation":"RED_THEN_GREEN_ROUTING_60_OF_60_TRANSPORT_109_OF_109","g19_publisher_lifecycle_self_lock":"RED_TIMEOUT_8_SECONDS_THEN_GREEN_IDENTITY_146_OF_146_ROUTING_60_OF_60","hypothetical_full_report":"PROJECTION_ONLY_RED_THEN_GREEN_139_OF_139_REPORT_SUITE","identity_publisher":"RED_9_THEN_GREEN_123_OF_123","plan_status":"RED_2_THEN_GREEN_8_OF_8","post_g19_live_report_equivalence":"FAIL_RENDER_CHECK_V11_5_CURRENT_EXACT_RECOVERY_STATE_INVALID","production_constructor":"RED_7_THEN_GREEN_133_OF_133_IDENTITY_SUITE","production_request_verifier":"RED_3_THEN_GREEN","production_shaped_authority_and_projection":"EXPECTED_RED_9_THEN_GREEN_133_OF_133","publisher_replay_and_source_revalidation":"RED_THEN_GREEN_EXACT_REPLAY_AND_MUTATION_COVERED","report_consistent_unknown_outer_mutation":"RED_THEN_GREEN_REJECTED_NO_WRITE","report_projection":"RED_5_THEN_GREEN_139_OF_139","route_recovery":"RED_2_THEN_GREEN_60_OF_60","track_c_writer":"RED_2_THEN_GREEN_139_OF_139"},"final_native_binding":{"actual_oracle_path":".harness/evidence/pre-g19-oracle-capture.json","candidate_commit_oid":"b9b6c23a71581c4751a601e70fa92794898683f9","candidate_source_tree_oid":"3e444501ac82cb72231046ca286e3caa2b04b90f","native_candidate_id":"f24ec59100d3d49fffec297eff67a00481681cd31314ae5476e4aa6d895a3a68","route_revision_id":"aad77679cd3eae55aea1f154506154271969b842f89e601df25bbf5aa37aa61c","status":"CURRENT_NATIVE_RESEALED_ACTUAL_ORACLE_PASS_PREFLIGHT_PENDING_ZERO_CREDIT","track_c_row_count":107,"track_c_rows_sha256":"8bbaa5295472147cb2ed5eb502b08dc1c72c8986c017f97887f09dd0d9930431","track_c_track_p_overlap":0},"id":"V11_4_POST_G18_REPORT_PROJECTION_CONSTRUCTIBILITY_CYCLE","independent_acceptance":false,"platform_blocked_slots":[{"credit":"ZERO","lane_id":"g19-integrated-root-broad-read-only-audit","retry":false,"status":"PLATFORM_ADDITIONAL_CHECK_BLOCKED_TERMINAL","verdict":null}],"post_state_constructibility":"FAIL","proposal_id":"g18-postfreeze-report-state-machine-self-lock-v1","residue":"ZERO","status":"GENERATION_19_FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_REPORT_VALIDATOR_BLOCKED"},"pre_g18_candidate_denominator":null,"prefreeze_review_budget":{"formal_combined":1,"same_reviewer_rereview":1,"status":"CONSUMED"},"preintegration":{"head":"554b07e48c9550ce8e105dd460490d50e76b347f","merged":6,"ready":0,"ref":"refs/heads/integration/harness-v2-prework","stale":0},"previous_report_rendered_at_utc":"2026-07-23T16:55:04Z","previous_semantic_sha256":"220893da0937b5903befe8ca663f1c62e4e34faa7170ac00f880c86cbb9c2562","pro_report_contract_review":{"bounded_rereview_consumed":true,"bounded_rereview_verdict":"BLOCKER","further_same_reviewer_attempts":"PROHIBITED","initial_verdict":"BLOCKER","post_rereview_local_correction":"GREEN_UNREVIEWED_ZERO_CREDIT"},"pro_report_current_audit":{"audited_report_sha256":"213d40aeb10902c6c127091e7e9243ca7b141d667ccf7b5d9685072efbfb949b","counterexample":"The report passed byte/source freshness while its human current body exposed a historical PROVISIONAL_EXACT_ACCEPT verdict and forecast G20 publication/quorum after G20 was already immutable and the current gate was NEW_OWNER_ARCHITECTURE_AUTHORITY.","credit":"ZERO","current_detail_path":".harness/plans/active/harness-v2-refactor-plan.md","current_detail_sha256":"8981b0644113221483dffb1f03e962a89ef70c58a8718afd5d25ed5256d0b437","finding_id":"P21_FINAL_HUMAN_CURRENT_SEMANTICS_STALE","freshness_check":"V11_10_ATOMIC_FULL_REPORT_REGENERATION_AND_CHECK_PASS","report_path":"pro_out/20260717_harness_refactor_status.txt","status":"V11_10_FINAL_HUMAN_CURRENT_SEMANTICS_ACCEPTED_INTEGRATED_FULL_REPORT_ATOMIC_REGENERATION_COMPLETED_ZERO_CREDIT","written_at_kst":"2026-07-24T01:55:05+09:00"},"progress_forecast":{"accepted_macros":0,"active_completed":4,"active_macro":"A0","active_percent":50,"active_total":8,"confidence":"LOW","credit":"ZERO","equal_macro_wip_percent":4.5,"strict_percent":0,"total_macros":11},"proposed_subject_id":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","rendered_at_kst":"2026-07-24T01:55:31+09:00","rendered_at_utc":"2026-07-23T16:55:31Z","replacement_state":"transition_active","report_contract":{"atomic_publication_residue":"PASS","overall":"FRESH_AND_COMPLETE","semantic_completeness":"PASS","source_freshness":"PASS"},"report_mode":"LIVE_CURRENT","report_semantic_consistency":{"all_gates_green":false,"current_blocker_partition":{"cleanup":{"count":0,"ids":[]},"code":{"count":0,"ids":[]},"historical_platform_terminal":{"count":0,"ids":[]},"owner_authority":{"count":1,"ids":["NEW_OWNER_ARCHITECTURE_AUTHORITY"]},"platform":{"count":0,"ids":[]},"runtime_capability":{"count":0,"ids":[]}},"failed_gate_ids":["NEW_OWNER_ARCHITECTURE_AUTHORITY"],"prior_forecast":{"actual_outcome":null,"error_or_invalidator":null,"forecast_timestamp":null,"predicted_checkpoint":null,"source_path":null,"source_sha256":null,"status":"SOURCE_NOT_RECORDED"},"report_code_blocker_ids":[],"report_lane_status":"GREEN","resolved_findings":{"appendix_reference":"machine metadata appendix.resolved_uncredited_finding_ids","count":56,"current_effect":"NO_CURRENT_BLOCKING_EFFECT","groups":[{"count":13,"status":"accepted_prefreeze_clearance_zero_credit"},{"count":7,"status":"corrected_green_independently_rereviewed_zero_credit"},{"count":3,"status":"corrected_green_independently_reviewed_zero_credit"},{"count":1,"status":"corrected_green_nonblocking_zero_credit"},{"count":1,"status":"corrected_green_precheck_aba_rereview_resolved_zero_credit"},{"count":1,"status":"corrected_green_present_restore_rereview_exposed_unlink_successor_zero_credit"},{"count":1,"status":"corrected_green_request_sha_rereview_resolved_zero_credit"},{"count":3,"status":"corrected_green_unreviewed_zero_credit"},{"count":1,"status":"corrected_local_green_successor_authority_required_zero_credit"},{"count":1,"status":"fail_first_and_green_complete_pending_exact_freeze"},{"count":5,"status":"local_correction_green_prefreeze_review_pending"},{"count":5,"status":"local_correction_green_zero_credit"},{"count":9,"status":"local_green_zero_credit_superseded_as_reset_design_input"},{"count":4,"status":"local_second_correction_green_prefreeze_review_pending"},{"count":1,"status":"recorded_pending_exact_freeze"}]},"runtime_accounting":{"full_report_generation_seconds":null,"regression_seconds":null,"source_path":null,"source_sha256":null,"status":"SOURCE_NOT_RECORDED"},"time_accounting":{"active_engineering_seconds":null,"owner_blocked_wall_seconds":null,"platform_blocked_wall_seconds":null,"source_path":null,"source_sha256":null,"status":"SOURCE_NOT_RECORDED"}},"resolved_uncredited_finding_ids":["closure-v4-f1","closure-v4-f2","closure-v4-f3","closure-v4-f4","closure-v4-f5","closure-v4-f6","closure-v4-f7","closure-v4-f8","closure-v4-f9","closure-v4-f10","closure-v4-f11","closure-v4-f12","closure-v4-f13","closure-v4-f15","closure-v4-f16","closure-v4-f17","closure-v4-f18","closure-v4-f19","closure-v4-f20","closure-v4-f21","closure-v4-f22","closure-v4-f23","closure-v4-f24","closure-v4-f25","closure-v4-f26","closure-v4-f27","closure-v4-f28","closure-v4-f29","closure-v4-f30","closure-v4-f31","closure-v4-f32","closure-v4-f33","closure-v4-f34","closure-v4-f35","closure-v4-f36","closure-v4-f37","closure-v4-f38","closure-v4-f39","g17-guardian-f1-publisher-full-validator-binding","g17-guardian-f2-exact-owner-generation-authorization","g17-guardian-f3-cwd-expected-actual-binding","G21_CANONICAL_REQUEST_SHA_AUTHORITY_BINDING_GAP","G21_ROUTE_ROLLBACK_SAME_BYTE_INODE_ABA_GAP","G21_ROUTE_LOCK_SIDECAR_POSTCHECK_TOCTOU_GAP","G21_ROUTE_LOCK_PRIOR_ABSENT_UNLINK_REPLACEMENT_RACE","G21_RETENTION_PREMOVE_INTENT_AND_RESTART_RECONCILIATION_GAP","G21_RETENTION_POSTMOVE_RESIDUE_PROPAGATION_GAP","G21_RETENTION_RECEIPT_MODE_FSYNC_ORDER_GAP","G21_RETENTION_RESTART_INTENT_LOAD_STRUCTURED_CLASSIFICATION_GAP","G21_RETENTION_DETERMINISTIC_CRASH_HANDOFF_GAP","G21_RETENTION_NONREGULAR_COLLISION_BLOCKING_GAP","G21_R4_DISCOVERY_PUBLIC_PUBLISHER_MISSING","G21_ROUTE_RESEAL_COMPOSITE_AUTHORITY_BINDING_GAP","G21_HISTORICAL_G20_PROJECTION_SUFFIX_SELF_LOCK","G21_CANONICAL_EVIDENCE_CAPTURE_ACTIVE_LINEAGE_SELF_LOCK","PRO_REPORT_COMPOSITE_OWNER_AUTHORITY_EXTENSION_SELF_LOCK"],"retained_rejected_exact_subject_id":null,"review_unavailability_events":[],"route_integration_bundle":null,"route_integration_proof_stages":null,"route_integration_terminal_review":null,"route_revision_id":"478bb51344e553308a3ca74882e13fe152319988e10d9a93b981b1f019e06177","schema_version":4,"semantic_sha256":"4055f5013b1144121ef546ac6d82e323ce110879f61104197c0c4b43d583933a","serial_critical_blocker":{"id":"NEW_OWNER_ARCHITECTURE_AUTHORITY","status":"ESCALATED_OWNER_REQUIRED"},"sources":{"a_txt_advisory_disposition":"295931158ef5b0a2a0f72aef089af45462444f3878941ab93eae8e24558ef2f1","a_txt_advisory_review":"3f17bbad5acd891efc61dc7d59999b224d831580a4c09d68897cea24f16e3290","acceptance_transition":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19","current_execution_projection.owner_authority.admission":"ac3e50fafdca207ff128f264389ca062f12c39207cf4c0ac2a306bbf7303dbab","current_execution_projection.owner_authority.source":"746ef00649c802734f3964cd343e7f0fa0631abbca4a920d3fc2dcc3f916ac16","current_locator":"62549b3e1965f36ea9305871c7735e7e61b91fb5e156e49d722470d5db79d34d","g20_quarantine_baseline":"e6f6174aa7701822ae638f2b810be66f3f2a2910daee1d83d6e89b5327f1a129","identity_contract":"2cc15f44e67a18c7b3f7e70e491e010fc49e32d5b45f3434ea6856f9830b0201","latest_stop_review_v11_5":"8bb11dd636ec5f2ddb4b5b6195e5612e1b4f792af8d541bb85fdf2c319804326","latest_stop_review_v11_6":"24b30cee9160741d8838660495f80653d33325777d721c03a9abf8345e585cc6","ledger":"2c6161ebe268ea948f3362ee943b6c905356e440cc05a3b231895df5b89c4d65","owner_clarification_v11_1":"24be41bb2117bdaffee4dea5e48ac19835dc8af53990d80d57382dabd679a546","owner_clarification_v11_2":"e265dacdf7251f07a0ca1d174b94b769578f8d8f8cd5206c1d011f2bdfdf3ae6","owner_clarification_v11_5":"b53695c0196721a9f06fd2cf4d64a02ac4519cea20c43650833791326c896fb0","owner_clarification_v11_6":"845dd07dc25339323b8d691a8eae5e06cf2c1ca67011259feaf90b99dbd2b5bf","owner_correction_v10_2":"cb67e15b43cc0a75a0dee1e47e233c498bfcd1037d331dca6ef0affe984f186c","owner_directive_v11":"3d777e38a210a2488ea547ef5616385bc15ad1ae492f2773524a751431631eb1","plan_change_v10_2":"7100bd163df49e8fc50fc8be237afac479706d7695fb83c2c4da28a27196abed","plan_change_v11":"8a023efd911beed818933160eebd81d7a13e8ef278a9476decb7cdf2b35136f1","plan_change_v11_1":"0c73c57a1b769bacc1d8bc6852bf5b29bf517511fe09965dd61679fc41569e0b","plan_change_v11_2":"6e4703dc53aea8c36415fa77fa6fd68fd87619ea1f4e2e8848cbfd4c4154be09","plan_change_v11_5":"9deca428b13696ae75e01ed1194f18d749c57f30cc2fd6dcbaca590bf4d6649e","plan_change_v11_6":"418cdbe9e321ba315b2e96b2f2480684eaca11061ae75d3b0377e1f5b8ce34ec","pro_disposition":"32db26ceab40d5d390b0679b875ae19fd423107e5508aad15415e1d13cdc742b","projection.ledger_display":"75ed080fca7974f49321f33833ee9bb0d356adc19a32b11f11a0d84937fb2a2e","projection.plan_status":"4796dc39610346d0ac02641a5307a015f4f692e5e01f16eb415fc0583e0533d1","projection.progress_state":"8047f0599d87196f34708345cc7972541cb22828bd403e8d001a2001e0c48842","projection.runtime_pointer":"c65435f142411c16989698408f3c470c2786d20dcb2d7c50ecfc5cee58969257","runtime_count":30,"track_c_lock_v11_6":"b6cba69f19bfc8811f72b3aaca1184478f232538f31ecb5818cd18bd2f0b9c4a","validator_verdict":"d6b78196616f904114cba2044349a2fd50c60cc96adde2e9124a19e29cba1c71"},"stage_verdicts":{"acceptance_credit":"ZERO","broad_state":"NOT_RUN","combined_a0_correction_review_verdict":"PENDING","commit_a_state":"NONE","committed_state_verdict":"NOT_RUN","cross_family_verdict":"NOT_RUN","exact_subject_state":"FROZEN_EXACT_ZERO_CREDIT_POSTPUBLICATION_PROOF_FAILED","focused_receipt_credit":"zero","focused_receipt_state":"FOCUSED_EXACT","focused_receipt_verdict":"NOT_RUN","guardian_verdict":"NOT_RUN","local_correction_state":"PROVISIONAL_EXACT_ACCEPT_ZERO_CREDIT","overall_a0_state":"ACTIVE_ZERO_CREDIT","prefreeze_review_verdict":"BLOCKER_CORRECTED_LOCALLY_REVIEW_BUDGET_EXHAUSTED","verifier_verdict":"NOT_RUN"},"structured_next_action":"Await new owner architecture authority for both the G21 control-plane repair design and the MR1 transport/authority scope. Do not run a second G21 or MR1 quick patch, half-open canary, migration descriptor, AR1, or G21 under the exhausted v11.10 authority.","subject_path_count":null,"successor_precondition":null,"task_profile_sha256":"eca88e41646520c124a8237e16d8a9a969f44d5293082eccb7bbea48a443adf3","thin_e2e":{"authored":"3/3","executed":"3/3","foundation":"PREINTEGRATION_MERGED","outcomes":{"ENVIRONMENT_BLOCKED":0,"EXPECTED_RED":1,"PASS":2,"UNEXPECTED_FAILURE":0},"state":"PARKED_COMPLETE_ZERO_CREDIT"},"track_c_denominator":{"count":89,"credit":"ZERO","lock_path":".harness/plans/references/harness-v2-refactor/track-c-denominator-lock-v6-r1.json","path_array_sha256":"ff9eb62e772e7f5bd9839de0474861c80e2503935d2ee292000633c773c3913d"},"track_p_state":"PARKED_COMPLETE_ZERO_CREDIT","transition_authority":{"acceptance_credit":"ZERO","candidate_id":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","candidate_source_tree_oid":"0c1dc87a41e41eb4d43ad4848c4f25abd60e88a5","current_evidence_classification":"FOCUSED_EXACT","current_exact_manifest_sha256":"29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c","current_observation_receipt_sha256":"8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930","current_review_verdict_refs":[],"disposition":"PROVISIONAL_ACCEPT","generation_edge":{"domain":"a0-generation-supersession-v4","edge_type":"OWNER_AUTHORIZED_EXACT_REVIEW_SUCCESSOR","owner_authorization_sha256":"abf04ae4a7960c52a7876646f94e5428fc4b7096ae5226fb7717a11e53d70d09","predecessor_acceptance_credit":"ZERO","predecessor_candidate_id":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","predecessor_disposition":"SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT","predecessor_generation":19,"predecessor_locator_sha256":"42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11","predecessor_transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","predecessor_validator_verdict_sha256":"b673ba2956bfdd7eef556e38901de44634f1118c5af510566675f271f5b5e398","schema_version":4,"successor_candidate_id":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","successor_candidate_source_tree_oid":"0c1dc87a41e41eb4d43ad4848c4f25abd60e88a5","successor_exact_manifest_sha256":"29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c","successor_generation":20,"successor_observation_receipt_sha256":"8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930","successor_sealed_source_sha256":"fe3063ab6752ef6f16a318a5ab832a9afcbe67fa8911984fdeb26c9b05d47d89","supersession_reason":"OWNER_AUTHORIZED_POSTFREEZE_CORRECTION"},"generation_edge_sha256":"1c99dd75c9e257cc1f9701d4e6ea7a0b0d64e5ce954ed869f098903d5425670e","generation_owner_authorization":{"acceptance_credit":"ZERO","authorization_type":"G19_POSTPUBLICATION_TO_G20_SINGLE_RECOVERY","automatic_generation_21":false,"correction_bundle_sha256":"418cdbe9e321ba315b2e96b2f2480684eaca11061ae75d3b0377e1f5b8ce34ec","domain":"a0-generation-recovery-authorization-v1","maximum_successors":1,"owner_active_plan_snapshot_sha256":"99090576c378dc376f9d056b357f3705d35970a65590bf620a28d7475db73955","owner_admission_sha256":"418cdbe9e321ba315b2e96b2f2480684eaca11061ae75d3b0377e1f5b8ce34ec","owner_directive_id":"OWNER_CLARIFICATION_V11_6","owner_directive_sha256":"845dd07dc25339323b8d691a8eae5e06cf2c1ca67011259feaf90b99dbd2b5bf","owner_source_copy_sha256":"845dd07dc25339323b8d691a8eae5e06cf2c1ca67011259feaf90b99dbd2b5bf","predecessor_candidate_id":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","predecessor_candidate_source_tree_oid":"3e444501ac82cb72231046ca286e3caa2b04b90f","predecessor_exact_manifest_sha256":"33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73","predecessor_generation":19,"predecessor_locator_sha256":"42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11","predecessor_observation_receipt_sha256":"b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6","predecessor_sealed_source_sha256":"476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9","predecessor_transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","predecessor_validator_verdict_sha256":"b673ba2956bfdd7eef556e38901de44634f1118c5af510566675f271f5b5e398","schema_version":3,"successor_candidate_id":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","successor_candidate_source_tree_oid":"0c1dc87a41e41eb4d43ad4848c4f25abd60e88a5","successor_exact_manifest_sha256":"29d628453de690465f2fb51e4e437d2f8261397f27780aa10c6b92a4d6b58b0c","successor_generation":20,"successor_observation_receipt_sha256":"8b94e0bd3d0664a0bcff9f66dcde385d3bb956103036cffa1f53d8ee6ee46930","successor_sealed_source_sha256":"fe3063ab6752ef6f16a318a5ab832a9afcbe67fa8911984fdeb26c9b05d47d89"},"generation_owner_authorization_sha256":"abf04ae4a7960c52a7876646f94e5428fc4b7096ae5226fb7717a11e53d70d09","generation_supersession_sha256":"1c99dd75c9e257cc1f9701d4e6ea7a0b0d64e5ce954ed869f098903d5425670e","locator_sha256":"62549b3e1965f36ea9305871c7735e7e61b91fb5e156e49d722470d5db79d34d","macro_report_obligation":true,"next_schedulable_gate":"a0-exact-review.guardian","next_schedulable_phase":"harness-v2-a0","predecessor_generation_edge":{"domain":"a0-generation-supersession-v3","edge_type":"OWNER_AUTHORIZED_EXACT_REVIEW_SUCCESSOR","owner_authorization_sha256":"888b79b8c93ea2fc825793dca93fac5fc982991d3a3b7a1d5e7459b839bbe7a8","predecessor_acceptance_credit":"ZERO","predecessor_candidate_id":"811b9039c68b45f2a0d0d385542038209dde2ba266580869bf6b4b25df4296a6","predecessor_disposition":"SUPERSEDED_BEFORE_EXACT_REVIEW_COMPLETION_ZERO_CREDIT","predecessor_generation":18,"predecessor_locator_sha256":"ab4eeb946a2d51816d92d7096ac53dd50b08c52586ab181f77684f333b9bc094","predecessor_transition_sha256":"99783e89a3fc0fd8df5d42208e81403ccfa6e449a3cb04cfa42a96cf269e9e6a","predecessor_validator_verdict_sha256":"c20e3f9880bcc3c283cd7c6fbffcdad65fe682aa41316890677fafd1a81d682c","schema_version":3,"successor_candidate_id":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","successor_candidate_source_tree_oid":"3e444501ac82cb72231046ca286e3caa2b04b90f","successor_exact_manifest_sha256":"33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73","successor_generation":19,"successor_observation_receipt_sha256":"b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6","successor_sealed_source_sha256":"476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9","supersession_reason":"OWNER_AUTHORIZED_POSTFREEZE_CORRECTION"},"predecessor_generation_edge_sha256":"86549bdf585728f07b3821a14fc37ebe9905e0a7566b9b20989e690b8d2e7c36","predecessor_generation_owner_authorization":{"acceptance_credit":"ZERO","authorization_type":"G18_POSTFREEZE_TO_G19_SINGLE_RECOVERY","automatic_generation_20":false,"correction_bundle_sha256":"9deca428b13696ae75e01ed1194f18d749c57f30cc2fd6dcbaca590bf4d6649e","domain":"a0-generation-recovery-authorization-v1","maximum_successors":1,"owner_active_plan_snapshot_sha256":"eac08bc547c0a7ca955d9226d1962c5f8106028c03417d2cc239afdea52fafe0","owner_admission_sha256":"9deca428b13696ae75e01ed1194f18d749c57f30cc2fd6dcbaca590bf4d6649e","owner_directive_id":"OWNER_CLARIFICATION_V11_5","owner_directive_sha256":"b53695c0196721a9f06fd2cf4d64a02ac4519cea20c43650833791326c896fb0","owner_source_copy_sha256":"b53695c0196721a9f06fd2cf4d64a02ac4519cea20c43650833791326c896fb0","predecessor_candidate_id":"811b9039c68b45f2a0d0d385542038209dde2ba266580869bf6b4b25df4296a6","predecessor_candidate_source_tree_oid":"2636981ce97e88d5ae80ec0a1a3f61b51529214d","predecessor_exact_manifest_sha256":"0b39ec4b3f1b612441f783fe0e73f983e72f51c0e19658baca882b5858dfac01","predecessor_generation":18,"predecessor_locator_sha256":"ab4eeb946a2d51816d92d7096ac53dd50b08c52586ab181f77684f333b9bc094","predecessor_observation_receipt_sha256":"47b85bb00aa05770bb2167ac93572ba86a0821e7fb0d59d7e4c39aebce41c34b","predecessor_sealed_source_sha256":"8507ece1de15cf1e269d7125555fd3ff6fbb84603f99c2337190e791dc0023a1","predecessor_transition_sha256":"99783e89a3fc0fd8df5d42208e81403ccfa6e449a3cb04cfa42a96cf269e9e6a","predecessor_validator_verdict_sha256":"c20e3f9880bcc3c283cd7c6fbffcdad65fe682aa41316890677fafd1a81d682c","schema_version":2,"successor_candidate_id":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","successor_candidate_source_tree_oid":"3e444501ac82cb72231046ca286e3caa2b04b90f","successor_exact_manifest_sha256":"33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73","successor_generation":19,"successor_observation_receipt_sha256":"b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6","successor_sealed_source_sha256":"476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9"},"predecessor_generation_owner_authorization_sha256":"888b79b8c93ea2fc825793dca93fac5fc982991d3a3b7a1d5e7459b839bbe7a8","predecessor_transition":{"acceptance_credit":"ZERO","broad_closure_ref":null,"candidate_id":"fb6e86d911777bd96b12240f83977992a903199ed37c65187ef55e833965db91","candidate_source_tree_oid":"3e444501ac82cb72231046ca286e3caa2b04b90f","commit_a_ref":null,"committed_verification_ref":null,"current_evidence_classification":"FOCUSED_EXACT","current_exact_manifest_sha256":"33bb984f169c7b5d9f36a9dd2c3836b20d87641a86f5e69ebb96bd123b5eab73","current_observation_receipt_sha256":"b03d67bb4146b13526704907e0294e71843f170c6bf4ea6bc6dcd0ac14b9e0c6","current_review_verdict_refs":[],"disposition":"PROVISIONAL_ACCEPT","domain":"a0-acceptance-transition-v2","focused_closure_ref":null,"generation_supersession_sha256":"86549bdf585728f07b3821a14fc37ebe9905e0a7566b9b20989e690b8d2e7c36","locator_sha256":"42b2bcac21456f1b6b6055a76a7cabf1697461ff7e2c6f7e589c5d2f0af1cf11","macro_report_obligation":true,"next_schedulable_gate":"a0-exact-review.guardian","next_schedulable_phase":"harness-v2-a0","prior_transition_sha256":null,"schema_version":2,"sealed_source_sha256":"476405b73223696253347aca03f72f226f117ef0495a472f33debcc7752f7ee9","transition_sha256":"5ac73474a1e832300281d89e8a563daba9da533800112f7cecfc0fa05318a708","transition_stage":"PROVISIONAL_EXACT_ACCEPT","validator_verdict_sha256":"b673ba2956bfdd7eef556e38901de44634f1118c5af510566675f271f5b5e398"},"schema_version":2,"sealed_source_sha256":"fe3063ab6752ef6f16a318a5ab832a9afcbe67fa8911984fdeb26c9b05d47d89","transition_sha256":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19","transition_stage":"PROVISIONAL_EXACT_ACCEPT","validator_verdict_sha256":"d6b78196616f904114cba2044349a2fd50c60cc96adde2e9124a19e29cba1c71"},"v11_8_execution_state":{"cleanup_blockers":[],"collaboration_capability":{"allowed_parallelism":"ISOLATED_WORKTREE_AND_READ_ONLY_SHELL","credit":"ZERO","explicit_effort_parameter_available":false,"explicit_model_parameter_available":false,"new_generic_child_scheduled":false},"credit":"ZERO","parallel_implementation":[{"actual_transport_diagnostic":{"cleanup":"RECOVERED_LEGACY_PARTIAL_ZERO_CREDIT","cleanup_receipt":null,"credit":"ZERO","formal_acceptance":"NOT_PROVEN","historical_lease":"ACTIVE","worker_commit":"00220fca1c6a2e2b7e207da8228eeeb2c4389101","worker_test":"PASS"},"correction_attempts":[{"credit":"ZERO","diff":"877 insertions, 65 deletions","id":"MR1_REVIEW_CORRECTION_1","reason":"v1/v2 inconsistency, racy lease acquisition, cleanup TOCTOU, synthetic terminal evidence, partial chain validation, and missing directory fsync","residue":"ZERO_AFTER_EXACT_TWO_FILE_RESTORE","reviewed_file_sha256":{"multiwork_lifecycle":"1f930d41","test_multiwork_lifecycle":"d825519d"},"status":"REJECTED_UNCOMMITTED_DISCARDED_ZERO_CREDIT","tests":"FAIL 17 OF 22"}],"correction_branch":"mr1/p19-lifecycle-review-correction","correction_commit":"840c945ae875c428ad90bad477c982bfe7a1eed6","correction_tests":"FAIL_FIRST_11_RED_FOCUSED_19_OF_19_PASS_PY_COMPILE_DIFF_CHECK_PASS","correction_tree":"3b24b75cf6ed3af24252ad5f9fba0e74b50963e8","correction_worktree":"/tmp/agent-common-mr1-review-correction-20260723","credit":"ZERO","id":"MR1_P19_MULTIWORK_LIFECYCLE","integration":"NOT_AUTHORIZED","next_dependency":"NEW_OWNER_MR1_TRANSPORT_AUTHORITY_AND_SCOPE","result_artifact":{"path":".harness/plans/references/harness-v2-refactor/mr1/mr1-p19-transport-e2e-and-review-result.json","sha256":"31d16516733577ef6e87491497bd4678191436c53276245608ae324790743d19"},"review_findings":["cleanup accepted force-removed dirty worktree and asserted unobserved lease/residue","preflight accepted worker base stale relative to Main","worker-authored preflight/model/session/test claims could authorize disposition","task/run/active-write-set/lease/terminal-edge bindings were incomplete","lifecycle artifacts could use non-durable /tmp authority","actual collaboration transport Thin E2E remained absent"],"review_verdict":"REJECT","status":"ESCALATED_OWNER_REQUIRED_SUCCESSOR_EBA94CE_REJECTED_ZERO_CREDIT","successor_attempt":{"actual_transport_oracle":"NOT_RUN","commit":"eba94ceb5a2e62b2a0f65de42acb4995e4c78320","credit":"ZERO","fail_first":"RED_14_13_FAIL_1_ERROR","main_disposition":"REJECT_DO_NOT_INTEGRATE","main_tests":"NOT_RUN_GUARDIAN_REJECTED_BEFORE_INTEGRATION","postdiff_guardian":"REJECT","tree":"19668df08225632b6b13f13d410f373af1a0ad47","worker_green":"FOCUSED_26_OF_26_PY_COMPILE_DIFF_CHECK_PASS"}},{"credit":"ZERO","id":"F3_DEADLOCK_FUTURE_SUCCESSOR_FIX","integration":"V11_9_EXACTLY_ONE_REPLACEMENT_SUCCESSOR","status":"V11_9_AUTHORIZED_QUALIFIED_COMMIT_5F026A2_PENDING_REPLACEMENT_COMPOSITION","tree_oid":"a84060b704091df1373eaf8fae8b123caf02574b"},{"credit":"ZERO","id":"PRO_REPORT_CURRENT_WORK_EXECUTION_CONTRACT","owned_paths":["agent-common/harness/render-refactor-pro-report.py","agent-common/harness/test_refactor_pro_report_freshness.py"],"status":"INTEGRATED_MAIN_CHECKPOINT_FRESHNESS_PASS_184_OF_184"}],"parallel_mechanically_read_only":[{"credit":"ZERO","id":"CAPABILITY_AUDIT","status":"PHASE_A_STATE_PATH_BOUNDARY_CHARACTERIZED_PARTIAL_SPARK_DISABLED"},{"credit":"ZERO","id":"WORKTREE_RUN_REFERENCE_INVENTORY","status":"READ_ONLY_CURRENT_ONE_TERMINAL_WORKTREE_CLEANUP_RECEIPT_PASS"},{"credit":"ZERO","id":"TRACK_P_STALENESS","status":"PARKED_REPLAY_AFTER_COMMIT_A"}],"park":["renderer architecture migration","directive registry migration","generic workflow DSL","broad GC framework","Windows full portability","A2/A5 redesign"],"runtime_capability_blockers":[{"credit":"ZERO","id":"F3_COMPLETION_PROGRESS_GATE_SELF_DEADLOCK","next_dependency":"V11_9_REPLACEMENT_PROSPECTIVE_DESCRIPTOR_AND_REQUEST","request_sha256":"44d989d6877ae23160f9bf2eeff39d8bc1e082c4232a4fdd36297d0fa23092cd","status":"HISTORICAL_CONFIRMED_RUN_OUTCOME_UNKNOWN_NO_RETRY"}],"status":"PRESERVED_HISTORY_SUPERSEDED_BY_V11_9_ZERO_CREDIT","terminology":{"collaboration_transport":"worker execution transport adapter","hook_gate":"pretool-orchestrator legacy identifier","main_integrator":"Main supervision, integration, exact gates, reporting","scheduling_sidecar":".codex/agents/orchestrator.toml legacy identifier","workflow_control_plane":"harness/P19 durable authority and lifecycle"}},"verification_suites":null,"whole_root_stop_condition":{"active":false,"allowed_stop_condition_id":null,"reason":null,"subject_sha256":null},"workflow_candidate_id":"harness-v2-a0-closure-v4"}
+```
+<!-- END HARNESS V2 PRO REPORT METADATA -->
+
+<!-- A0_TRANSITION_PROJECTION_START -->
+{"acceptance_credit":"ZERO","candidate_id":"3e746cdc945ee00e0ab877809520c80d63aaf5819da6a4cb13228e89320e5d1a","disposition":"PROVISIONAL_ACCEPT","domain":"a0-authority-projection-v1","next_schedulable_gate":"a0-exact-review.guardian","next_schedulable_phase":"harness-v2-a0","projection_id":"pro_report","schema_version":1,"transition_sha256":"277a73f1d8282b87853fa865a527c0e19c11afc74816d0904bd31bf816b94c19","transition_stage":"PROVISIONAL_EXACT_ACCEPT"}
+<!-- A0_TRANSITION_PROJECTION_END -->
